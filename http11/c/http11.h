@@ -18,6 +18,8 @@
 
 typedef enum {false, true} bool;
 
+typedef struct _HTTPParserState *HTTPParserState;
+
 typedef void (*element_cb)(const char *buf, size_t len);
 
 typedef struct HTTPParser {
@@ -28,12 +30,12 @@ typedef struct HTTPParser {
   /* Callback Methods */
   element_cb request_method;
 
-  /* Internal State */
-  int cs;
-  int mark;
+  /* Internal state */
+  HTTPParserState state;
 
 } HTTPParser;
 
+HTTPParser *HTTPParser_create();
 void HTTPParser_init(HTTPParser *parser);
 size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off);
 

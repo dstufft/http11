@@ -22,6 +22,8 @@ SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "c"))
 
 # Write out our cdef to bind data to our FFI instance
 CDEF = """
+    typedef struct _HTTPParserState *HTTPParserState;
+
     typedef void (*element_cb)(const char *buf, size_t len);
 
     typedef struct HTTPParser {
@@ -33,11 +35,11 @@ CDEF = """
         element_cb request_method;
 
         /* Internal State */
-        int cs;
-        int mark;
+        HTTPParserState state;
 
     } HTTPParser;
 
+    HTTPParser *HTTPParser_create();
     void HTTPParser_init(HTTPParser *parser);
     size_t HTTPParser_execute(HTTPParser *parser, const char *data,
                                size_t len, size_t off);

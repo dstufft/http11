@@ -13,6 +13,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "http11.h"
 
@@ -21,11 +22,11 @@
     machine http_parser;
 
     action mark {
-        parser->mark = fpc - data;
+        parser->state->mark = fpc - data;
     }
 
     action request_method {
-        printf("%.*s", fpc - data - parser->mark, data + parser->mark);
+        printf("%.*s", fpc - data - parser->state->mark, data + parser->state->mark);
     }
 
     CRLF = ( "\r\n" | "\n" ) ;
@@ -50,12 +51,26 @@ main := http_message;
 
 %% write data;
 
+struct _HTTPParserState {
+  int cs;
+  int mark;
+};
+
+
+HTTPParser *HTTPParser_create() {
+    HTTPParser *p = malloc(sizeof(*p));
+
+    p->state = malloc(sizeof *p->state);
+
+    return p;
+}
+
 
 void HTTPParser_init(HTTPParser *parser) {
-    %% access parser->;
+    %% access parser->state->;
     %% write init;
 
-    parser->mark = 0;
+    parser->state->mark = 0;
 
     parser->finished = false;
     parser->error = 0;
@@ -65,13 +80,13 @@ size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size
     const char *p = data + off;
     const char *pe = data + len;
 
-    %% access parser->;
+    %% access parser->state->;
     %% write exec;
 
-    if (parser->cs == http_parser_error || parser->cs >= http_parser_first_final ) {
+    if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;
 
-        if (parser-> cs == http_parser_error && !parser->error) {
+        if (parser->state->cs == http_parser_error && !parser->error) {
             parser->error = 1;
         }
     }
