@@ -60,7 +60,16 @@ struct _HTTPParserState {
 HTTPParser *HTTPParser_create() {
     HTTPParser *parser = malloc(sizeof(*parser));
 
+    if (!parser) {
+        return NULL;
+    }
+
     parser->state = malloc(sizeof *parser->state);
+
+    if (!parser->state) {
+        HTTPParser_destroy(parser);
+        return NULL;
+    }
 
     return parser;
 }

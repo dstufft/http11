@@ -45,7 +45,16 @@ struct _HTTPParserState {
 HTTPParser *HTTPParser_create() {
     HTTPParser *parser = malloc(sizeof(*parser));
 
+    if (!parser) {
+        return NULL;
+    }
+
     parser->state = malloc(sizeof *parser->state);
+
+    if (!parser->state) {
+        HTTPParser_destroy(parser);
+        return NULL;
+    }
 
     return parser;
 }
@@ -53,14 +62,14 @@ HTTPParser *HTTPParser_create() {
 
 void HTTPParser_init(HTTPParser *parser) {
     
-#line 71 "http11/c/http11.rl"
+#line 80 "http11/c/http11.rl"
     
-#line 59 "http11/c/http11.c"
+#line 68 "http11/c/http11.c"
 	{
 	 parser->state->cs = http_parser_start;
 	}
 
-#line 72 "http11/c/http11.rl"
+#line 81 "http11/c/http11.rl"
 
     parser->state->mark = 0;
 
@@ -73,9 +82,9 @@ size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size
     const char *pe = data + len;
 
     
-#line 84 "http11/c/http11.rl"
+#line 93 "http11/c/http11.rl"
     
-#line 79 "http11/c/http11.c"
+#line 88 "http11/c/http11.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -118,7 +127,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 122 "http11/c/http11.c"
+#line 131 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr2;
 		case 33: goto st2;
@@ -153,7 +162,7 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 157 "http11/c/http11.c"
+#line 166 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st0;
 	goto st4;
@@ -310,7 +319,7 @@ case 16:
 	_out: {}
 	}
 
-#line 85 "http11/c/http11.rl"
+#line 94 "http11/c/http11.rl"
 
     if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;
