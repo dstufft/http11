@@ -1,0 +1,26 @@
+*.so
+*.py[co]
+__pycache__/
+
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+
+# Documentation build directory
+docs/_build
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+.cache
+htmlcov/
+
+# Developer local files
+\#*
+*~

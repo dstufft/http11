@@ -1,0 +1,7 @@
+include AUTHORS
+include LICENSE
+include README.rst
+include CONTRIBUTING.rst
+
+exclude tox.ini
+exclude .travis.yml
