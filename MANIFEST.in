@@ -2,6 +2,11 @@ include AUTHORS
 include LICENSE
 include README.rst
 include CONTRIBUTING.rst
+include Makefile
+
+recursive-include http11 *.c *.h *.rl
 
 exclude tox.ini
 exclude .travis.yml
+
+prune http11/__pycache__
