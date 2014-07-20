@@ -51,7 +51,7 @@ main := http_message;
 %% write data;
 
 
-void http_parser_init(http_parser *parser) {
+void HTTPParser_init(HTTPParser *parser) {
     %% access parser->;
     %% write init;
 
@@ -61,7 +61,7 @@ void http_parser_init(http_parser *parser) {
     parser->error = 0;
 }
 
-size_t http_parser_execute(http_parser *parser, const char *data, size_t len, size_t off) {
+size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off) {
     const char *p = data + off;
     const char *pe = data + len;
 

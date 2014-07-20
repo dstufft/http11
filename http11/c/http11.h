@@ -20,7 +20,7 @@ typedef enum {false, true} bool;
 
 typedef void (*element_cb)(const char *buf, size_t len);
 
-typedef struct http_parser {
+typedef struct HTTPParser {
   /* Public State */
   bool finished;
   int error;
@@ -32,9 +32,9 @@ typedef struct http_parser {
   int cs;
   int mark;
 
-} http_parser;
+} HTTPParser;
 
-void http_parser_init(http_parser *parser);
-size_t http_parser_execute(http_parser *parser, const char *data, size_t len, size_t off);
+void HTTPParser_init(HTTPParser *parser);
+size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off);
 
 #endif

@@ -20,7 +20,7 @@
 
 
 
-#line 49 "http11/c/http11.rl"
+#line 48 "http11/c/http11.rl"
 
 
 
@@ -33,19 +33,19 @@ static const int http_parser_error = 0;
 static const int http_parser_en_main = 1;
 
 
-#line 53 "http11/c/http11.rl"
+#line 52 "http11/c/http11.rl"
 
 
-void http_parser_init(http_parser *parser) {
+void HTTPParser_init(HTTPParser *parser) {
     
-#line 57 "http11/c/http11.rl"
+#line 56 "http11/c/http11.rl"
     
 #line 44 "http11/c/http11.c"
 	{
 	 parser->cs = http_parser_start;
 	}
 
-#line 58 "http11/c/http11.rl"
+#line 57 "http11/c/http11.rl"
 
     parser->mark = 0;
 
@@ -53,12 +53,12 @@ void http_parser_init(http_parser *parser) {
     parser->error = 0;
 }
 
-size_t http_parser_execute(http_parser *parser, const char *data, size_t len, size_t off) {
+size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off) {
     const char *p = data + off;
     const char *pe = data + len;
 
     
-#line 70 "http11/c/http11.rl"
+#line 69 "http11/c/http11.rl"
     
 #line 64 "http11/c/http11.c"
 	{
@@ -295,7 +295,7 @@ case 16:
 	_out: {}
 	}
 
-#line 71 "http11/c/http11.rl"
+#line 70 "http11/c/http11.rl"
 
     if (parser->cs == http_parser_error || parser->cs >= http_parser_first_final ) {
         parser->finished = true;

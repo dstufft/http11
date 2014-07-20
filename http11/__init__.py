@@ -24,7 +24,7 @@ SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "c"))
 CDEF = """
     typedef void (*element_cb)(const char *buf, size_t len);
 
-    typedef struct http_parser {
+    typedef struct HTTPParser {
         /* Public State */
         int finished;
         int error;
@@ -36,10 +36,10 @@ CDEF = """
         int cs;
         int mark;
 
-    } http_parser;
+    } HTTPParser;
 
-    void http_parser_init(http_parser *parser);
-    size_t http_parser_execute(http_parser *parser, const char *data,
+    void HTTPParser_init(HTTPParser *parser);
+    size_t HTTPParser_execute(HTTPParser *parser, const char *data,
                                size_t len, size_t off);
 """
 
