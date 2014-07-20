@@ -43,11 +43,11 @@ struct _HTTPParserState {
 
 
 HTTPParser *HTTPParser_create() {
-    HTTPParser *p = malloc(sizeof(*p));
+    HTTPParser *parser = malloc(sizeof(*parser));
 
-    p->state = malloc(sizeof *p->state);
+    parser->state = malloc(sizeof *parser->state);
 
-    return p;
+    return parser;
 }
 
 
@@ -321,4 +321,9 @@ case 16:
     }
 
     return 1;
+}
+
+void HTTPParser_destroy(HTTPParser *parser) {
+    free(parser->state);
+    free(parser);
 }
