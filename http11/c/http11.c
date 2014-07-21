@@ -333,6 +333,8 @@ case 16:
 }
 
 void HTTPParser_destroy(HTTPParser *parser) {
-    free(parser->state);
+    if (parser) {
+        free(parser->state);
+    }
     free(parser);
 }
