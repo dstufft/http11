@@ -104,10 +104,8 @@ size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size
 }
 
 void HTTPParser_destroy(HTTPParser *parser) {
-    if (parser && parser->state) {
+    if (parser) {
         free(parser->state);
     }
-    if (parser) {
-        free(parser);
-    }
+    free(parser);
 }
