@@ -34,7 +34,7 @@ static const char *create_ptr(const char *buf, const int offset) {
 
 
 
-#line 84 "http11/c/http11.rl"
+#line 97 "http11/c/http11.rl"
 
 
 
@@ -47,7 +47,7 @@ static const int http_parser_error = 0;
 static const int http_parser_en_main = 1;
 
 
-#line 88 "http11/c/http11.rl"
+#line 101 "http11/c/http11.rl"
 
 
 struct _HTTPParserState {
@@ -76,14 +76,14 @@ HTTPParser *HTTPParser_create() {
 
 void HTTPParser_init(HTTPParser *parser) {
     
-#line 116 "http11/c/http11.rl"
+#line 129 "http11/c/http11.rl"
     
 #line 82 "http11/c/http11.c"
 	{
 	 parser->state->cs = http_parser_start;
 	}
 
-#line 117 "http11/c/http11.rl"
+#line 130 "http11/c/http11.rl"
 
     parser->state->mark = 0;
 
@@ -96,7 +96,7 @@ size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size
     const char *pe = data + len;
 
     
-#line 129 "http11/c/http11.rl"
+#line 142 "http11/c/http11.rl"
     
 #line 102 "http11/c/http11.c"
 	{
@@ -259,13 +259,20 @@ case 5:
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto tr6;
-		case 72: goto st6;
+		case 72: goto tr7;
 	}
 	goto st4;
+tr7:
+#line 37 "http11/c/http11.rl"
+	{
+        parser->state->mark = calc_offset(p, data);
+    }
+	goto st6;
 st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
+#line 276 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto tr6;
@@ -339,15 +346,31 @@ st13:
 		goto _test_eof13;
 case 13:
 	switch( (*p) ) {
-		case 10: goto st14;
-		case 13: goto st16;
+		case 10: goto tr15;
+		case 13: goto tr16;
 		case 32: goto tr6;
 	}
 	goto st4;
+tr15:
+#line 54 "http11/c/http11.rl"
+	{
+        if (parser->request_uri != NULL) {
+            parser->error = parser->request_uri(
+                create_ptr(data, parser->state->mark),
+                calc_length(p, data, parser->state->mark)
+            );
+
+            if (parser->error) {
+                { parser->state->cs = (http_parser_error); goto _again;}
+            }
+        }
+    }
+	goto st14;
 st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
+#line 374 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st17;
 		case 13: goto st15;
@@ -365,10 +388,26 @@ case 15:
 	if ( (*p) == 10 )
 		goto st17;
 	goto st0;
+tr16:
+#line 54 "http11/c/http11.rl"
+	{
+        if (parser->request_uri != NULL) {
+            parser->error = parser->request_uri(
+                create_ptr(data, parser->state->mark),
+                calc_length(p, data, parser->state->mark)
+            );
+
+            if (parser->error) {
+                { parser->state->cs = (http_parser_error); goto _again;}
+            }
+        }
+    }
+	goto st16;
 st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
+#line 411 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st14;
 		case 32: goto tr6;
@@ -397,7 +436,7 @@ case 16:
 	_out: {}
 	}
 
-#line 130 "http11/c/http11.rl"
+#line 143 "http11/c/http11.rl"
 
     if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;

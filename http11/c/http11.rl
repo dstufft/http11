@@ -64,6 +64,19 @@ static const char *create_ptr(const char *buf, const int offset) {
         }
     }
 
+    action http_version {
+        if (parser->http_version != NULL) {
+            parser->error = parser->http_version(
+                create_ptr(data, parser->state->mark),
+                calc_length(fpc, data, parser->state->mark)
+            );
+
+            if (parser->error) {
+                fgoto *http_parser_error;
+            }
+        }
+    }
+
     CRLF = ( "\r\n" | "\n" ) ;
     SP = " " ;
 
@@ -74,7 +87,7 @@ static const char *create_ptr(const char *buf, const int offset) {
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark %request_uri ;
-    http_version = "HTTP" "/" digit "." digit ;
+    http_version = ( "HTTP" "/" digit "." digit ) >mark %request_uri ;
 
     request_line = method SP request_target SP http_version CRLF ;
     http_message = ( request_line ) CRLF ;
