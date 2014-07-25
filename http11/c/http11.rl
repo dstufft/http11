@@ -18,6 +18,12 @@
 #include "http11.h"
 
 
+struct _HTTPParserState {
+  int cs;
+  int mark;
+};
+
+
 static int calc_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
@@ -95,12 +101,6 @@ main := http_message;
 
 
 %% write data;
-
-
-struct _HTTPParserState {
-  int cs;
-  int mark;
-};
 
 
 HTTPParser *HTTPParser_create() {

@@ -20,6 +20,12 @@
 #include "http11.h"
 
 
+struct _HTTPParserState {
+  int cs;
+  int mark;
+};
+
+
 static int calc_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
@@ -46,12 +52,12 @@ void handle_callback(HTTPParser *parser,
 
 
 
-#line 94 "http11/c/http11.rl"
+#line 100 "http11/c/http11.rl"
 
 
 
 
-#line 55 "http11/c/http11.c"
+#line 61 "http11/c/http11.c"
 static const int http_parser_start = 1;
 static const int http_parser_first_final = 17;
 static const int http_parser_error = 0;
@@ -59,13 +65,7 @@ static const int http_parser_error = 0;
 static const int http_parser_en_main = 1;
 
 
-#line 98 "http11/c/http11.rl"
-
-
-struct _HTTPParserState {
-  int cs;
-  int mark;
-};
+#line 104 "http11/c/http11.rl"
 
 
 HTTPParser *HTTPParser_create() {
@@ -175,7 +175,7 @@ st0:
  parser->state->cs = 0;
 	goto _out;
 tr0:
-#line 49 "http11/c/http11.rl"
+#line 55 "http11/c/http11.rl"
 	{
         parser->state->mark = calc_offset(p, data);
     }
@@ -210,7 +210,7 @@ case 2:
 		goto st2;
 	goto st0;
 tr2:
-#line 53 "http11/c/http11.rl"
+#line 59 "http11/c/http11.rl"
 	{
         handle_callback(parser, p, data, parser->request_method);
 
@@ -228,7 +228,7 @@ case 3:
 		goto st0;
 	goto tr4;
 tr4:
-#line 49 "http11/c/http11.rl"
+#line 55 "http11/c/http11.rl"
 	{
         parser->state->mark = calc_offset(p, data);
     }
@@ -244,7 +244,7 @@ case 4:
 	}
 	goto st4;
 tr6:
-#line 61 "http11/c/http11.rl"
+#line 67 "http11/c/http11.rl"
 	{
         handle_callback(parser, p, data, parser->request_uri);
 
@@ -265,7 +265,7 @@ case 5:
 	}
 	goto st4;
 tr7:
-#line 49 "http11/c/http11.rl"
+#line 55 "http11/c/http11.rl"
 	{
         parser->state->mark = calc_offset(p, data);
     }
@@ -354,7 +354,7 @@ case 13:
 	}
 	goto st4;
 tr15:
-#line 61 "http11/c/http11.rl"
+#line 67 "http11/c/http11.rl"
 	{
         handle_callback(parser, p, data, parser->request_uri);
 
@@ -386,7 +386,7 @@ case 15:
 		goto st17;
 	goto st0;
 tr16:
-#line 61 "http11/c/http11.rl"
+#line 67 "http11/c/http11.rl"
 	{
         handle_callback(parser, p, data, parser->request_uri);
 
