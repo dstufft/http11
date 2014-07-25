@@ -110,18 +110,19 @@ main := http_message;
 HTTPParser *HTTPParser_create() {
     HTTPParser *parser = malloc(sizeof(*parser));
 
-    if (!parser) {
-        return NULL;
-    }
+    if (!parser)
+        goto error;
 
     parser->state = malloc(sizeof *parser->state);
 
-    if (!parser->state) {
-        HTTPParser_destroy(parser);
-        return NULL;
-    }
+    if (!parser->state)
+        goto error;
 
     return parser;
+
+    error:
+        HTTPParser_destroy(parser);
+        return NULL;
 }
 
 
