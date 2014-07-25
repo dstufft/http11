@@ -39,7 +39,10 @@ typedef struct HTTPParser {
 
 HTTPParser *HTTPParser_create();
 void HTTPParser_init(HTTPParser *parser);
-size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off);
+size_t HTTPParser_execute(HTTPParser *parser,
+                          const char *data,
+                          size_t len,
+                          size_t off);
 void HTTPParser_destroy(HTTPParser *parser);
 
 #endif
