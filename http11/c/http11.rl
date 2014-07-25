@@ -39,10 +39,10 @@ static const char *create_ptr(const char *buf, const int offset) {
 }
 
 
-void handle_callback(HTTPParser *parser,
-                     const char *fpc,
-                     const char *data,
-                     int (*callback)(const char *, size_t)) {
+static void handle_callback(HTTPParser *parser,
+                            const char *fpc,
+                            const char *data,
+                            int (*callback)(const char *, size_t)) {
     if (callback != NULL) {
         parser->error = callback(
             create_ptr(data, parser->state->mark),
