@@ -29,6 +29,7 @@ typedef struct HTTPParser {
 
   /* Callback Methods */
   element_cb request_method;
+  element_cb request_uri;
 
   /* Internal state */
   HTTPParserState state;
