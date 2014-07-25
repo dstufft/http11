@@ -11,7 +11,6 @@
 # limitations under the License.
 
 import binascii
-import collections
 import os.path
 import sys
 
