@@ -81,7 +81,7 @@ HTTPParser *HTTPParser_create() {
     if (!parser)
         goto error;
 
-    parser->state = malloc(sizeof *parser->state);
+    parser->state = malloc(sizeof(*parser->state));
 
     if (!parser->state)
         goto error;
