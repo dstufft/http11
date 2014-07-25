@@ -41,12 +41,12 @@ static const char *create_ptr(const char *buf, const int offset) {
 
 static void handle_callback(HTTPParser *parser,
                             const char *fpc,
-                            const char *data,
+                            const char *buf,
                             int (*callback)(const char *, size_t)) {
     if (callback != NULL) {
         parser->error = callback(
-            create_ptr(data, parser->state->mark),
-            calc_length(fpc, data, parser->state->mark)
+            create_ptr(buf, parser->state->mark),
+            calc_length(fpc, buf, parser->state->mark)
         );
     }
 }
