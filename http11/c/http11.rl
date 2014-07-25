@@ -28,13 +28,16 @@ static int calc_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
 
+
 static int calc_length(const char *fpc, const char *buf, const int offset) {
     return fpc - buf - offset;
 }
 
+
 static const char *create_ptr(const char *buf, const int offset) {
     return buf + offset;
 }
+
 
 void handle_callback(HTTPParser *parser,
                      const char *fpc,
@@ -131,6 +134,7 @@ void HTTPParser_init(HTTPParser *parser) {
     parser->error = 0;
 }
 
+
 size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off) {
     const char *p = data + off;
     const char *pe = data + len;
@@ -148,6 +152,7 @@ size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size
 
     return 1;
 }
+
 
 void HTTPParser_destroy(HTTPParser *parser) {
     if (parser) {
