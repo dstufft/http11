@@ -94,7 +94,7 @@ static void handle_callback(HTTPParser *parser,
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark %request_uri ;
-    http_version = ( "HTTP" "/" digit "." digit ) >mark %request_uri ;
+    http_version = ( "HTTP" "/" digit "." digit ) >mark %http_version ;
 
     request_line = method SP request_target SP http_version CRLF ;
     http_message = ( request_line ) CRLF ;

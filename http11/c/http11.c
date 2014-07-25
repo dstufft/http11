@@ -364,9 +364,9 @@ case 13:
 	}
 	goto st4;
 tr15:
-#line 73 "http11/c/http11.rl"
+#line 80 "http11/c/http11.rl"
 	{
-        handle_callback(parser, p, buf, parser->request_uri);
+        handle_callback(parser, p, buf, parser->http_version);
 
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
@@ -395,9 +395,9 @@ case 15:
 		goto st17;
 	goto st0;
 tr16:
-#line 73 "http11/c/http11.rl"
+#line 80 "http11/c/http11.rl"
 	{
-        handle_callback(parser, p, buf, parser->request_uri);
+        handle_callback(parser, p, buf, parser->http_version);
 
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
