@@ -66,25 +66,22 @@ static void handle_callback(HTTPParser *parser,
     action request_method {
         handle_callback(parser, fpc, data, parser->request_method);
 
-        if (parser->error) {
+        if (parser->error)
             fgoto *http_parser_error;
-        }
     }
 
     action request_uri {
         handle_callback(parser, fpc, data, parser->request_uri);
 
-        if (parser->error) {
+        if (parser->error)
             fgoto *http_parser_error;
-        }
     }
 
     action http_version {
         handle_callback(parser, fpc, data, parser->http_version);
 
-        if (parser->error) {
+        if (parser->error)
             fgoto *http_parser_error;
-        }
     }
 
     CRLF = ( "\r\n" | "\n" ) ;
