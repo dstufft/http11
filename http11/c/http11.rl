@@ -84,20 +84,39 @@ static void handle_callback(HTTPParser *parser,
             fgoto *http_parser_error;
     }
 
+    action status_code {
+        handle_callback(parser, fpc, buf, parser->status_code);
+
+        if (parser->error)
+            fgoto *http_parser_error;
+    }
+
+    action reason_phrase {
+        handle_callback(parser, fpc, buf, parser->reason_phrase);
+
+        if (parser->error)
+            fgoto *http_parser_error;
+    }
+
     CRLF = ( "\r\n" | "\n" ) ;
     SP = " " ;
+    VCHAR = graph ;
+    HTAB = "\t" ;
 
     tchar = ( "!" | "#" | "$" | "%" | "&" | "'" | "*" | "+" | "-" | "." | "^" |
               "_" | "`" | "|" | "~" | digit | alpha ) ;
     token = tchar+ ;
-
+    obs_text = 0x80..0xFF ;
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark %request_uri ;
     http_version = ( "HTTP" "/" digit "." digit ) >mark %http_version ;
+    status_code = digit{3} >mark %status_code ;
+    reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
     request_line = method SP request_target SP http_version CRLF ;
-    http_message = ( request_line ) CRLF ;
+    status_line = http_version SP status_code SP reason_phrase CRLF ;
+    http_message = ( request_line | status_line ) CRLF ;
 
 main := http_message;
 
@@ -124,6 +143,8 @@ HTTPParser *HTTPParser_create() {
     parser->request_method = NULL;
     parser->request_uri = NULL;
     parser->http_version = NULL;
+    parser->status_code = NULL;
+    parser->reason_phrase = NULL;
 
     return parser;
 

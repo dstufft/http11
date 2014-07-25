@@ -41,7 +41,8 @@ def parser(request, data, _callbacks):
 
     request.addfinalizer(lambda: http11.lib.HTTPParser_destroy(p))
 
-    for element in ["request_method", "request_uri", "http_version"]:
+    for element in ["request_method", "request_uri", "http_version",
+                    "status_code", "reason_phrase"]:
         _callbacks.append(
             http11.ffi.callback(
                 "int(const char *buf, size_t length)",

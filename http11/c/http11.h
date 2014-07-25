@@ -31,6 +31,8 @@ typedef struct HTTPParser {
   element_cb request_method;
   element_cb request_uri;
   element_cb http_version;
+  element_cb status_code;
+  element_cb reason_phrase;
 
   /* Internal state */
   HTTPParserState state;
