@@ -17,16 +17,33 @@
 
 #include "http11.h"
 
+int calculate_offset(const char *fpc, const char *buf) {
+    return fpc - buf;
+}
+
+int calculate_length(const char *fpc, const char *buf, const int offset) {
+    return fpc - buf - offset;
+}
+
+const char *create_pointer(const char *buf, const int offset) {
+    return buf + offset;
+}
+
 
 %%{
     machine http_parser;
 
     action mark {
-        parser->state->mark = fpc - data;
+        parser->state->mark = calculate_offset(fpc, data);
     }
 
     action request_method {
-        printf("%.*s", fpc - data - parser->state->mark, data + parser->state->mark);
+        if (parser->request_method != NULL) {
+            parser->request_method(
+                create_pointer(data, parser->state->mark),
+                calculate_length(fpc, data, parser->state->mark)
+            );
+        }
     }
 
     CRLF = ( "\r\n" | "\n" ) ;

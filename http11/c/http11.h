@@ -20,7 +20,7 @@ typedef enum {false, true} bool;
 
 typedef struct _HTTPParserState *HTTPParserState;
 
-typedef void (*element_cb)(const char *buf, size_t len);
+typedef int (*element_cb)(const char *buf, size_t length);
 
 typedef struct HTTPParser {
   /* Public State */
