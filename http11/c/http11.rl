@@ -18,6 +18,12 @@
 #include "http11.h"
 
 
+struct _HTTPParserState {
+  int cs;
+  int mark;
+};
+
+
 static int calc_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
@@ -30,6 +36,18 @@ static const char *create_ptr(const char *buf, const int offset) {
     return buf + offset;
 }
 
+void handle_callback(HTTPParser *parser,
+                     const char *fpc,
+                     const char *data,
+                     int (*callback)(const char *, size_t)) {
+    if (callback != NULL) {
+        parser->error = callback(
+            create_ptr(data, parser->state->mark),
+            calc_length(fpc, data, parser->state->mark)
+        );
+    }
+}
+
 
 %%{
     machine http_parser;
@@ -39,41 +57,26 @@ static const char *create_ptr(const char *buf, const int offset) {
     }
 
     action request_method {
-        if (parser->request_method != NULL) {
-            parser->error = parser->request_method(
-                create_ptr(data, parser->state->mark),
-                calc_length(fpc, data, parser->state->mark)
-            );
+        handle_callback(parser, fpc, data, parser->request_method);
 
-            if (parser->error) {
-                fgoto *http_parser_error;
-            }
+        if (parser->error) {
+            fgoto *http_parser_error;
         }
     }
 
     action request_uri {
-        if (parser->request_uri != NULL) {
-            parser->error = parser->request_uri(
-                create_ptr(data, parser->state->mark),
-                calc_length(fpc, data, parser->state->mark)
-            );
+        handle_callback(parser, fpc, data, parser->request_uri);
 
-            if (parser->error) {
-                fgoto *http_parser_error;
-            }
+        if (parser->error) {
+            fgoto *http_parser_error;
         }
     }
 
     action http_version {
-        if (parser->http_version != NULL) {
-            parser->error = parser->http_version(
-                create_ptr(data, parser->state->mark),
-                calc_length(fpc, data, parser->state->mark)
-            );
+        handle_callback(parser, fpc, data, parser->http_version);
 
-            if (parser->error) {
-                fgoto *http_parser_error;
-            }
+        if (parser->error) {
+            fgoto *http_parser_error;
         }
     }
 
@@ -98,12 +101,6 @@ main := http_message;
 
 
 %% write data;
-
-
-struct _HTTPParserState {
-  int cs;
-  int mark;
-};
 
 
 HTTPParser *HTTPParser_create() {
