@@ -19,15 +19,15 @@
 
 #include "http11.h"
 
-static int calculate_offset(const char *fpc, const char *buf) {
+static int calc_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
 
-static int calculate_length(const char *fpc, const char *buf, const int offset) {
+static int calc_length(const char *fpc, const char *buf, const int offset) {
     return fpc - buf - offset;
 }
 
-static const char *create_pointer(const char *buf, const int offset) {
+static const char *create_ptr(const char *buf, const int offset) {
     return buf + offset;
 }
 
@@ -132,7 +132,7 @@ st0:
 tr0:
 #line 36 "http11/c/http11.rl"
 	{
-        parser->state->mark = calculate_offset(p, data);
+        parser->state->mark = calc_offset(p, data);
     }
 	goto st2;
 st2:
@@ -169,8 +169,8 @@ tr2:
 	{
         if (parser->request_method != NULL) {
             parser->request_method(
-                create_pointer(data, parser->state->mark),
-                calculate_length(p, data, parser->state->mark)
+                create_ptr(data, parser->state->mark),
+                calc_length(p, data, parser->state->mark)
             );
         }
     }
