@@ -60,25 +60,25 @@ static void handle_callback(HTTPParser *parser,
     machine http_parser;
 
     action mark {
-        parser->state->mark = calculate_offset(fpc, data);
+        parser->state->mark = calculate_offset(fpc, buf);
     }
 
     action request_method {
-        handle_callback(parser, fpc, data, parser->request_method);
+        handle_callback(parser, fpc, buf, parser->request_method);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action request_uri {
-        handle_callback(parser, fpc, data, parser->request_uri);
+        handle_callback(parser, fpc, buf, parser->request_uri);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action http_version {
-        handle_callback(parser, fpc, data, parser->http_version);
+        handle_callback(parser, fpc, buf, parser->http_version);
 
         if (parser->error)
             fgoto *http_parser_error;
@@ -137,9 +137,12 @@ void HTTPParser_init(HTTPParser *parser) {
 }
 
 
-size_t HTTPParser_execute(HTTPParser *parser, const char *data, size_t len, size_t off) {
-    const char *p = data + off;
-    const char *pe = data + len;
+size_t HTTPParser_execute(HTTPParser *parser,
+                          const char *buf,
+                          size_t length,
+                          size_t offset) {
+    const char *p = buf + offset;
+    const char *pe = buf + length;
 
     %% access parser->state->;
     %% write exec;
