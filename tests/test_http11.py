@@ -34,10 +34,7 @@ def _load_cases():
                 yield case["message"], case["expected"]
 
 
-@pytest.mark.parametrize(
-    ("message", "expected"),
-    _load_cases(),
-)
+@pytest.mark.parametrize(("message", "expected"), _load_cases())
 def test_parsing(parser, data, message, expected):
     http11.lib.HTTPParser_execute(parser, message, len(message), 0)
 
