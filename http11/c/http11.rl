@@ -17,15 +17,15 @@
 
 #include "http11.h"
 
-int calculate_offset(const char *fpc, const char *buf) {
+static int calculate_offset(const char *fpc, const char *buf) {
     return fpc - buf;
 }
 
-int calculate_length(const char *fpc, const char *buf, const int offset) {
+static int calculate_length(const char *fpc, const char *buf, const int offset) {
     return fpc - buf - offset;
 }
 
-const char *create_pointer(const char *buf, const int offset) {
+static const char *create_pointer(const char *buf, const int offset) {
     return buf + offset;
 }
 
