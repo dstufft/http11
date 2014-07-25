@@ -118,6 +118,13 @@ HTTPParser *HTTPParser_create() {
     if (!parser->state)
         goto error;
 
+    /* We default all of our callbacks to NULL, we do this here instead of in
+       HTTPParser_init because we don't want to wipe out callbacks on each
+       request. */
+    parser->request_method = NULL;
+    parser->request_uri = NULL;
+    parser->http_version = NULL;
+
     return parser;
 
     error:
