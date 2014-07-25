@@ -24,17 +24,21 @@ struct _HTTPParserState {
 };
 
 
-static int calc_offset(const char *fpc, const char *buf) {
+static int calculate_offset(const char *fpc,
+                            const char *buf) {
     return fpc - buf;
 }
 
 
-static int calc_length(const char *fpc, const char *buf, const int offset) {
+static int calculate_length(const char *fpc,
+                            const char *buf,
+                            const int offset) {
     return fpc - buf - offset;
 }
 
 
-static const char *create_ptr(const char *buf, const int offset) {
+static const char *create_pointer(const char *buf,
+                                  const int offset) {
     return buf + offset;
 }
 
@@ -45,8 +49,8 @@ static void handle_callback(HTTPParser *parser,
                             int (*callback)(const char *, size_t)) {
     if (callback != NULL) {
         parser->error = callback(
-            create_ptr(buf, parser->state->mark),
-            calc_length(fpc, buf, parser->state->mark)
+            create_pointer(buf, parser->state->mark),
+            calculate_length(fpc, buf, parser->state->mark)
         );
     }
 }
@@ -56,7 +60,7 @@ static void handle_callback(HTTPParser *parser,
     machine http_parser;
 
     action mark {
-        parser->state->mark = calc_offset(fpc, data);
+        parser->state->mark = calculate_offset(fpc, data);
     }
 
     action request_method {
