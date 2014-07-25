@@ -40,10 +40,14 @@ static const char *create_ptr(const char *buf, const int offset) {
 
     action request_method {
         if (parser->request_method != NULL) {
-            parser->request_method(
+            parser->error = parser->request_method(
                 create_ptr(data, parser->state->mark),
                 calc_length(fpc, data, parser->state->mark)
             );
+
+            if (parser->error) {
+                fgoto *http_parser_error;
+            }
         }
     }
 
