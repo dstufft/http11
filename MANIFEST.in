@@ -5,6 +5,7 @@ include CONTRIBUTING.rst
 include Makefile
 
 recursive-include http11 *.c *.h *.rl
+recursive-include tests *.py
 
 exclude tox.ini
 exclude .travis.yml
