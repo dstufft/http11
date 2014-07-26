@@ -15,9 +15,16 @@ import pytest
 import http11
 
 
-def _dict_store_callback(data, name):
+def _dict_store_element_callback(data, name):
     def inner(buf, length):
         data[name] = http11.ffi.buffer(buf, length)[:]
+        return 0
+    return inner
+
+
+def _dict_store_status_code_callback(data, name):
+    def inner(status_code):
+        data[name] = status_code
         return 0
     return inner
 
@@ -42,14 +49,22 @@ def parser(request, data, _callbacks):
     request.addfinalizer(lambda: http11.lib.HTTPParser_destroy(p))
 
     for element in ["request_method", "request_uri", "http_version",
-                    "status_code", "reason_phrase"]:
+                    "reason_phrase"]:
         _callbacks.append(
             http11.ffi.callback(
                 "int(const char *buf, size_t length)",
-                _dict_store_callback(data, element),
+                _dict_store_element_callback(data, element),
             )
         )
         setattr(p, element, _callbacks[-1])
+
+    _callbacks.append(
+        http11.ffi.callback(
+            "int(const unsigned short status_code)",
+            _dict_store_status_code_callback(data, "status_code"),
+        )
+    )
+    p.status_code = _callbacks[-1]
 
     http11.lib.HTTPParser_init(p)
 

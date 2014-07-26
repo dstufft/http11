@@ -11,9 +11,11 @@
  * limitations under the License.
  */
 
+#include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "http11.h"
 
@@ -43,15 +45,40 @@ static const char *create_pointer(const char *buf,
 }
 
 
-static void handle_callback(HTTPParser *parser,
-                            const char *fpc,
-                            const char *buf,
-                            int (*callback)(const char *, size_t)) {
+static void handle_element_callback(HTTPParser *parser,
+                                    const char *fpc,
+                                    const char *buf,
+                                    int (*callback)(const char *, size_t)) {
     if (callback != NULL) {
         parser->error = callback(
             create_pointer(buf, parser->state->mark),
             calculate_length(fpc, buf, parser->state->mark)
         );
+    }
+}
+
+
+static void handle_status_code_callback(HTTPParser *parser,
+                                        const char *fpc,
+                                        const char *buf,
+                                        int (*callback)(const unsigned short))
+{
+    int length = calculate_length(fpc, buf, parser->state->mark);
+    char s[length + 1];
+    unsigned long int code;
+
+    if (callback != NULL) {
+        strncpy(s, create_pointer(buf, parser->state->mark), length);
+        s[length] = '\0';
+
+        errno = 0;
+        code = strtoul(s, NULL, 10);
+        if (errno) {
+            parser->error = 1;
+            return;
+        }
+
+        parser->error = callback((const unsigned short)code);
     }
 }
 
@@ -64,35 +91,35 @@ static void handle_callback(HTTPParser *parser,
     }
 
     action request_method {
-        handle_callback(parser, fpc, buf, parser->request_method);
+        handle_element_callback(parser, fpc, buf, parser->request_method);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action request_uri {
-        handle_callback(parser, fpc, buf, parser->request_uri);
+        handle_element_callback(parser, fpc, buf, parser->request_uri);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action http_version {
-        handle_callback(parser, fpc, buf, parser->http_version);
+        handle_element_callback(parser, fpc, buf, parser->http_version);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action status_code {
-        handle_callback(parser, fpc, buf, parser->status_code);
+        handle_status_code_callback(parser, fpc, buf, parser->status_code);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
     action reason_phrase {
-        handle_callback(parser, fpc, buf, parser->reason_phrase);
+        handle_element_callback(parser, fpc, buf, parser->reason_phrase);
 
         if (parser->error)
             fgoto *http_parser_error;

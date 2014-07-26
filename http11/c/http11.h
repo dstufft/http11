@@ -22,6 +22,8 @@ typedef struct _HTTPParserState *HTTPParserState;
 
 typedef int (*element_cb)(const char *buf, size_t length);
 
+typedef int (*status_code_cb)(const unsigned short status_code);
+
 typedef struct HTTPParser {
   /* Public State */
   bool finished;
@@ -31,8 +33,9 @@ typedef struct HTTPParser {
   element_cb request_method;
   element_cb request_uri;
   element_cb http_version;
-  element_cb status_code;
   element_cb reason_phrase;
+
+  status_code_cb status_code;
 
   /* Internal state */
   HTTPParserState state;
