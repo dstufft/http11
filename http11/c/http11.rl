@@ -143,7 +143,8 @@ static void handle_status_code_callback(HTTPParser *parser,
 
     request_line = method SP request_target SP http_version CRLF ;
     status_line = http_version SP status_code SP reason_phrase CRLF ;
-    http_message = ( request_line | status_line ) CRLF ;
+    start_line = ( request_line | status_line ) ;
+    http_message = start_line CRLF ;
 
 main := http_message;
 
