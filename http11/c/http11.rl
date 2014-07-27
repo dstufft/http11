@@ -35,20 +35,23 @@ struct _HTTPParserState {
 
 
 static int calculate_offset(const char *fpc,
-                            const char *buf) {
+                            const char *buf)
+{
     return fpc - buf;
 }
 
 
 static int calculate_length(const char *fpc,
                             const char *buf,
-                            const int offset) {
+                            const int offset)
+{
     return fpc - buf - offset;
 }
 
 
 static const char *create_pointer(const char *buf,
-                                  const int offset) {
+                                  const int offset)
+{
     return buf + offset;
 }
 
@@ -74,11 +77,11 @@ static char * strnstr_(const char *s, const char *find, size_t slen)
 }
 
 
-
 static void handle_element_callback(HTTPParser *parser,
                                     const char *fpc,
                                     const char *buf,
-                                    int (*callback)(const char *, size_t)) {
+                                    int (*callback)(const char *, size_t))
+{
     if (callback != NULL) {
         parser->error = callback(
             create_pointer(buf, parser->state->mark),
@@ -114,6 +117,7 @@ static void handle_status_code_callback(HTTPParser *parser,
 
     parser->state->mark = -1;
 }
+
 
 static void handle_header_callback(HTTPParser *parser, const char *buf)
 {
@@ -342,7 +346,8 @@ main := http_message;
 %% write data;
 
 
-HTTPParser *HTTPParser_create() {
+HTTPParser *HTTPParser_create()
+{
     HTTPParser *parser = malloc(sizeof(*parser));
 
     if (!parser)
@@ -375,7 +380,8 @@ HTTPParser *HTTPParser_create() {
 }
 
 
-void HTTPParser_init(HTTPParser *parser) {
+void HTTPParser_init(HTTPParser *parser)
+{
     %% access parser->state->;
     %% write init;
 
@@ -399,7 +405,8 @@ void HTTPParser_init(HTTPParser *parser) {
 size_t HTTPParser_execute(HTTPParser *parser,
                           const char *buf,
                           size_t length,
-                          size_t offset) {
+                          size_t offset)
+{
     char *rtmp;
     const char *p;
     const char *pe;
@@ -486,7 +493,8 @@ size_t HTTPParser_execute(HTTPParser *parser,
 }
 
 
-void HTTPParser_destroy(HTTPParser *parser) {
+void HTTPParser_destroy(HTTPParser *parser)
+{
     if (parser) {
         if (parser->state != NULL) {
             free(parser->state->tmp);
