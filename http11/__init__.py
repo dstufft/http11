@@ -30,6 +30,11 @@ CDEF = """
 
     typedef int (*status_code_cb)(const unsigned short status_code);
 
+    typedef int (*header_cb)(const char *name,
+                             size_t namelen,
+                             const char *value,
+                             size_t valuelen);
+
     typedef struct HTTPParser {
         /* Public State */
         int finished;
@@ -42,6 +47,8 @@ CDEF = """
         element_cb reason_phrase;
 
         status_code_cb status_code;
+
+        header_cb http_header;
 
         /* Internal State */
         HTTPParserState state;

@@ -29,6 +29,16 @@ def _dict_store_status_code_callback(data, name):
     return inner
 
 
+def _dict_store_header_callback(data):
+    def inner(name, namelen, value, valuelen):
+        name = http11.ffi.buffer(name, namelen)[:]
+        value = http11.ffi.buffer(value, valuelen)[:]
+
+        data.setdefault("headers", {}).setdefault(name, []).append(value)
+        return 0
+    return inner
+
+
 @pytest.fixture
 def data():
     return {}
@@ -65,6 +75,15 @@ def parser(request, data, _callbacks):
         )
     )
     p.status_code = _callbacks[-1]
+
+    _callbacks.append(
+        http11.ffi.callback(
+            "int(const char *name, size_t namelen, const char *value, "
+            "size_t valuelen)",
+            _dict_store_header_callback(data),
+        )
+    )
+    p.http_header = _callbacks[-1]
 
     http11.lib.HTTPParser_init(p)
 
