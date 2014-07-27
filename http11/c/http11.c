@@ -591,7 +591,7 @@ tr57:
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 283 "http11/c/http11.rl"
+#line 276 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -600,7 +600,7 @@ tr57:
     }
 	goto st14;
 tr60:
-#line 283 "http11/c/http11.rl"
+#line 276 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1165,7 +1165,7 @@ case 39:
 		goto tr55;
 	goto st0;
 tr55:
-#line 276 "http11/c/http11.rl"
+#line 283 "http11/c/http11.rl"
 	{
         handle_status_code_callback(parser, p, buf, parser->status_code);
 
@@ -1216,7 +1216,7 @@ tr58:
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 283 "http11/c/http11.rl"
+#line 276 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1225,7 +1225,7 @@ tr58:
     }
 	goto st42;
 tr61:
-#line 283 "http11/c/http11.rl"
+#line 276 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 

@@ -273,15 +273,15 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             fgoto *http_parser_error;
     }
 
-    action status_code {
-        handle_status_code_callback(parser, fpc, buf, parser->status_code);
+    action reason_phrase {
+        handle_element_callback(parser, fpc, buf, parser->reason_phrase);
 
         if (parser->error)
             fgoto *http_parser_error;
     }
 
-    action reason_phrase {
-        handle_element_callback(parser, fpc, buf, parser->reason_phrase);
+    action status_code {
+        handle_status_code_callback(parser, fpc, buf, parser->status_code);
 
         if (parser->error)
             fgoto *http_parser_error;
