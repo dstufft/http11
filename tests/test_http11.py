@@ -43,3 +43,5 @@ def test_parsing(parser, data, message, expected):
         http11.lib.HTTPParser_execute(parser, chunk, len(chunk), 0)
 
     assert data == expected
+    assert parser.finished
+    assert not parser.error
