@@ -19,6 +19,8 @@
 
 #include "http11.h"
 
+#define STATUS_CODE_LEN 3
+
 
 struct _HTTPParserState {
   int cs;
@@ -89,13 +91,12 @@ static void handle_status_code_callback(HTTPParser *parser,
                                         const char *buf,
                                         int (*callback)(const unsigned short))
 {
-    int length = calculate_length(fpc, buf, parser->state->mark);
-    char s[length + 1];
+    char s[STATUS_CODE_LEN + 1];
     unsigned long int code;
 
     if (callback != NULL) {
-        strncpy(s, create_pointer(buf, parser->state->mark), length);
-        s[length] = '\0';
+        strncpy(s, create_pointer(buf, parser->state->mark), STATUS_CODE_LEN);
+        s[STATUS_CODE_LEN] = '\0';
 
         errno = 0;
         code = strtoul(s, NULL, 10);
