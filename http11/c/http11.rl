@@ -115,35 +115,109 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     size_t namelen = parser->state->header_name_end - parser->state->header_name_start;
     size_t valuelen = parser->state->header_value_end - parser->state->header_value_start;
 
-    char newvalue[valuelen];
-    const char *ptr;
+    const char *found;
+    const char *found_sp;
+    const char *found_htab;
+    const char *src;
+    char *dest;
+    char *newvalue;
+    size_t left;
     size_t newvaluelen = 0;
+    bool first = true;
 
     if (parser->http_header != NULL) {
         /* Determine if we have a \r\n inside of our header value, if we do
            then we have an obs-fold and we need to collapse it down to a
            single space, if we don't then we can do a zero copy callback. */
-        if (strnstr_(value, "\r\n", valuelen) != NULL) {
-            ptr = value;
-            while (ptr < value + valuelen) {
-                if (ptr[0] == '\r' && ptr[1] == '\n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-                    /* We have an obs-fold, add a space to our newvalue and
-                       then iterate until we get to a non-space character. */
-                    newvalue[newvaluelen] = ' ';
-                    ptr += 3;
+        found_sp = strnstr_(value, "\r\n ", valuelen);
+        found_htab = strnstr_(value, "\r\n\t", valuelen);
+        if (found_sp != NULL && found_htab != NULL) {
+            found = found_sp < found_htab ? found_sp : found_htab;
+        } else if (found_sp != NULL && found_htab == NULL) {
+            found = found_sp;
+        } else if (found_sp == NULL && found_htab != NULL) {
+            found = found_htab;
+        } else {
+            found = NULL;
+        }
 
-                    while ((ptr[0] == ' ' || ptr[0] == '\t') && ptr < value + valuelen) {
-                        ptr++;
-                    }
-                } else {
-                    newvalue[newvaluelen] = ptr[0];
-                    ptr++;
-                }
+        if (found != NULL) {
+            newvalue = malloc(valuelen);
+            src = value;
+            dest = newvalue;
+            left = valuelen;
 
-                newvaluelen++;
+            if (newvalue == NULL) {
+                parser->error = 1;
+                return;
             }
 
+            while (found != NULL && left > 0) {
+                if (!first) {
+                    /* If this is not the first time through the loop, then add
+                       add s space to our new value. We do this here because
+                       we *only* want to add this, if there is another bit to
+                       memcpy. */
+                    *dest = ' ';
+                    dest++;
+                    newvaluelen++;
+                } else {
+                    first = false;
+                }
+
+                /* Copy everything to the left of our "\r\n " */
+                memcpy(dest, src, found - src);
+
+                /* Record how much bigger our newvalue is now */
+                newvaluelen += (found - src);
+
+                /* Decrement how much of our value is left to search */
+                left -= ((found - src) + 3);
+
+                /* Move our dest pointer to the end of the just copied data */
+                dest += (found - src);
+
+                /* Move our src pointer to just past the "\r\n " */
+                src = found + 3;
+
+                /* Look for any blocks of whitespace past the obs-fold and omit
+                   them from our new value. */
+                while (src < value + valuelen) {
+                    if (strncmp(src, " ", 1) && strncmp(src, "\t", 1))
+                        break;
+                    src++;
+                    left--;
+                }
+
+                /* Look for another "\r\n " */
+                found_sp = strnstr_(src, "\r\n ", left);
+                found_htab = strnstr_(src, "\r\n\t", left);
+                if (found_sp != NULL && found_htab != NULL) {
+                    found = found_sp < found_htab ? found_sp : found_htab;
+                } else if (found_sp != NULL && found_htab == NULL) {
+                    found = found_sp;
+                } else if (found_sp == NULL && found_htab != NULL) {
+                    found = found_htab;
+                } else {
+                    found = NULL;
+                }
+            }
+
+            /* Copy anything left over in our value */
+            if (left > 0) {
+                *dest = ' ';
+                dest++;
+                newvaluelen++;
+
+                memcpy(dest, src, left);
+                newvaluelen += left;
+            }
+
+            /* Call our callback finally with our new unfolded value. */
             parser->error = parser->http_header(name, namelen, newvalue, newvaluelen);
+
+            /* Free the memory that we added earlier. */
+            free(newvalue);
         } else {
             /* Do the better, more optimized version */
             parser->error = parser->http_header(name, namelen, value, valuelen);

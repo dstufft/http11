@@ -117,35 +117,109 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     size_t namelen = parser->state->header_name_end - parser->state->header_name_start;
     size_t valuelen = parser->state->header_value_end - parser->state->header_value_start;
 
-    char newvalue[valuelen];
-    const char *ptr;
+    const char *found;
+    const char *found_sp;
+    const char *found_htab;
+    const char *src;
+    char *dest;
+    char *newvalue;
+    size_t left;
     size_t newvaluelen = 0;
+    bool first = true;
 
     if (parser->http_header != NULL) {
         /* Determine if we have a \r\n inside of our header value, if we do
            then we have an obs-fold and we need to collapse it down to a
            single space, if we don't then we can do a zero copy callback. */
-        if (strnstr_(value, "\r\n", valuelen) != NULL) {
-            ptr = value;
-            while (ptr < value + valuelen) {
-                if (ptr[0] == '\r' && ptr[1] == '\n' && (ptr[2] == ' ' || ptr[2] == '\t')) {
-                    /* We have an obs-fold, add a space to our newvalue and
-                       then iterate until we get to a non-space character. */
-                    newvalue[newvaluelen] = ' ';
-                    ptr += 3;
+        found_sp = strnstr_(value, "\r\n ", valuelen);
+        found_htab = strnstr_(value, "\r\n\t", valuelen);
+        if (found_sp != NULL && found_htab != NULL) {
+            found = found_sp < found_htab ? found_sp : found_htab;
+        } else if (found_sp != NULL && found_htab == NULL) {
+            found = found_sp;
+        } else if (found_sp == NULL && found_htab != NULL) {
+            found = found_htab;
+        } else {
+            found = NULL;
+        }
 
-                    while ((ptr[0] == ' ' || ptr[0] == '\t') && ptr < value + valuelen) {
-                        ptr++;
-                    }
-                } else {
-                    newvalue[newvaluelen] = ptr[0];
-                    ptr++;
-                }
+        if (found != NULL) {
+            newvalue = malloc(valuelen);
+            src = value;
+            dest = newvalue;
+            left = valuelen;
 
-                newvaluelen++;
+            if (newvalue == NULL) {
+                parser->error = 1;
+                return;
             }
 
+            while (found != NULL && left > 0) {
+                if (!first) {
+                    /* If this is not the first time through the loop, then add
+                       add s space to our new value. We do this here because
+                       we *only* want to add this, if there is another bit to
+                       memcpy. */
+                    *dest = ' ';
+                    dest++;
+                    newvaluelen++;
+                } else {
+                    first = false;
+                }
+
+                /* Copy everything to the left of our "\r\n " */
+                memcpy(dest, src, found - src);
+
+                /* Record how much bigger our newvalue is now */
+                newvaluelen += (found - src);
+
+                /* Decrement how much of our value is left to search */
+                left -= ((found - src) + 3);
+
+                /* Move our dest pointer to the end of the just copied data */
+                dest += (found - src);
+
+                /* Move our src pointer to just past the "\r\n " */
+                src = found + 3;
+
+                /* Look for any blocks of whitespace past the obs-fold and omit
+                   them from our new value. */
+                while (src < value + valuelen) {
+                    if (strncmp(src, " ", 1) && strncmp(src, "\t", 1))
+                        break;
+                    src++;
+                    left--;
+                }
+
+                /* Look for another "\r\n " */
+                found_sp = strnstr_(src, "\r\n ", left);
+                found_htab = strnstr_(src, "\r\n\t", left);
+                if (found_sp != NULL && found_htab != NULL) {
+                    found = found_sp < found_htab ? found_sp : found_htab;
+                } else if (found_sp != NULL && found_htab == NULL) {
+                    found = found_sp;
+                } else if (found_sp == NULL && found_htab != NULL) {
+                    found = found_htab;
+                } else {
+                    found = NULL;
+                }
+            }
+
+            /* Copy anything left over in our value */
+            if (left > 0) {
+                *dest = ' ';
+                dest++;
+                newvaluelen++;
+
+                memcpy(dest, src, left);
+                newvaluelen += left;
+            }
+
+            /* Call our callback finally with our new unfolded value. */
             parser->error = parser->http_header(name, namelen, newvalue, newvaluelen);
+
+            /* Free the memory that we added earlier. */
+            free(newvalue);
         } else {
             /* Do the better, more optimized version */
             parser->error = parser->http_header(name, namelen, value, valuelen);
@@ -155,12 +229,12 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
 
 
-#line 253 "http11/c/http11.rl"
+#line 327 "http11/c/http11.rl"
 
 
 
 
-#line 164 "http11/c/http11.c"
+#line 238 "http11/c/http11.c"
 static const int http_parser_start = 1;
 static const int http_parser_first_final = 43;
 static const int http_parser_error = 0;
@@ -168,7 +242,7 @@ static const int http_parser_error = 0;
 static const int http_parser_en_main = 1;
 
 
-#line 257 "http11/c/http11.rl"
+#line 331 "http11/c/http11.rl"
 
 
 HTTPParser *HTTPParser_create() {
@@ -202,14 +276,14 @@ HTTPParser *HTTPParser_create() {
 
 void HTTPParser_init(HTTPParser *parser) {
     
-#line 290 "http11/c/http11.rl"
+#line 364 "http11/c/http11.rl"
     
-#line 208 "http11/c/http11.c"
+#line 282 "http11/c/http11.c"
 	{
 	 parser->state->cs = http_parser_start;
 	}
 
-#line 291 "http11/c/http11.rl"
+#line 365 "http11/c/http11.rl"
 
     parser->state->mark = 0;
     parser->state->header_name_start = 0;
@@ -230,9 +304,9 @@ size_t HTTPParser_execute(HTTPParser *parser,
     const char *pe = buf + length;
 
     
-#line 311 "http11/c/http11.rl"
+#line 385 "http11/c/http11.rl"
     
-#line 236 "http11/c/http11.c"
+#line 310 "http11/c/http11.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -324,7 +398,7 @@ st0:
  parser->state->cs = 0;
 	goto _out;
 tr0:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -333,7 +407,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 337 "http11/c/http11.c"
+#line 411 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr3;
 		case 33: goto st2;
@@ -359,7 +433,7 @@ case 2:
 		goto st2;
 	goto st0;
 tr3:
-#line 178 "http11/c/http11.rl"
+#line 252 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->request_method);
 
@@ -371,12 +445,12 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 375 "http11/c/http11.c"
+#line 449 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st0;
 	goto tr5;
 tr5:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -385,14 +459,14 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 389 "http11/c/http11.c"
+#line 463 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto tr7;
 	}
 	goto st4;
 tr7:
-#line 185 "http11/c/http11.rl"
+#line 259 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->request_uri);
 
@@ -404,7 +478,7 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 408 "http11/c/http11.c"
+#line 482 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto tr7;
@@ -412,7 +486,7 @@ case 5:
 	}
 	goto st4;
 tr8:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -421,7 +495,7 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 425 "http11/c/http11.c"
+#line 499 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto tr7;
@@ -501,7 +575,7 @@ case 13:
 	}
 	goto st4;
 tr16:
-#line 192 "http11/c/http11.rl"
+#line 266 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -510,11 +584,11 @@ tr16:
     }
 	goto st14;
 tr57:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 206 "http11/c/http11.rl"
+#line 280 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -523,7 +597,7 @@ tr57:
     }
 	goto st14;
 tr60:
-#line 206 "http11/c/http11.rl"
+#line 280 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -535,7 +609,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 539 "http11/c/http11.c"
+#line 613 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st43;
 		case 13: goto st15;
@@ -562,7 +636,7 @@ case 14:
 		goto tr20;
 	goto st0;
 tr37:
-#line 213 "http11/c/http11.rl"
+#line 287 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
@@ -574,10 +648,10 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 578 "http11/c/http11.c"
+#line 652 "http11/c/http11.c"
 	goto st0;
 tr38:
-#line 213 "http11/c/http11.rl"
+#line 287 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
@@ -589,25 +663,25 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 593 "http11/c/http11.c"
+#line 667 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st43;
 	goto st0;
 tr20:
-#line 162 "http11/c/http11.rl"
+#line 236 "http11/c/http11.rl"
 	{
         parser->state->header_name_start = calculate_offset(p, buf);
     }
 	goto st16;
 tr39:
-#line 213 "http11/c/http11.rl"
+#line 287 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
     }
-#line 162 "http11/c/http11.rl"
+#line 236 "http11/c/http11.rl"
 	{
         parser->state->header_name_start = calculate_offset(p, buf);
     }
@@ -616,7 +690,7 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 620 "http11/c/http11.c"
+#line 694 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 33: goto st16;
 		case 58: goto tr22;
@@ -642,17 +716,17 @@ case 16:
 		goto st16;
 	goto st0;
 tr22:
-#line 166 "http11/c/http11.rl"
+#line 240 "http11/c/http11.rl"
 	{
         parser->state->header_name_end = calculate_offset(p, buf);
     }
 	goto st17;
 tr24:
-#line 170 "http11/c/http11.rl"
+#line 244 "http11/c/http11.rl"
 	{
         parser->state->header_value_start = calculate_offset(p, buf);
     }
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -661,7 +735,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 665 "http11/c/http11.c"
+#line 739 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr24;
 		case 10: goto tr25;
@@ -673,7 +747,7 @@ case 17:
 		goto st0;
 	goto tr23;
 tr23:
-#line 170 "http11/c/http11.rl"
+#line 244 "http11/c/http11.rl"
 	{
         parser->state->header_value_start = calculate_offset(p, buf);
     }
@@ -682,7 +756,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 686 "http11/c/http11.c"
+#line 760 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr28;
 		case 10: goto tr29;
@@ -694,7 +768,7 @@ case 18:
 		goto st0;
 	goto st18;
 tr28:
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -703,7 +777,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 707 "http11/c/http11.c"
+#line 781 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st19;
 		case 10: goto st22;
@@ -729,7 +803,7 @@ case 20:
 		goto st0;
 	goto st18;
 tr35:
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -738,7 +812,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 742 "http11/c/http11.c"
+#line 816 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st21;
 		case 10: goto st22;
@@ -783,17 +857,17 @@ case 23:
 		goto st22;
 	goto st0;
 tr25:
-#line 170 "http11/c/http11.rl"
+#line 244 "http11/c/http11.rl"
 	{
         parser->state->header_value_start = calculate_offset(p, buf);
     }
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
 	goto st24;
 tr29:
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -802,7 +876,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 806 "http11/c/http11.c"
+#line 880 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st25;
 		case 10: goto tr37;
@@ -831,7 +905,7 @@ case 24:
 		goto tr39;
 	goto st0;
 tr41:
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -840,7 +914,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 844 "http11/c/http11.c"
+#line 918 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr41;
 		case 10: goto tr29;
@@ -852,17 +926,17 @@ case 25:
 		goto st0;
 	goto st18;
 tr26:
-#line 170 "http11/c/http11.rl"
+#line 244 "http11/c/http11.rl"
 	{
         parser->state->header_value_start = calculate_offset(p, buf);
     }
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
 	goto st26;
 tr30:
-#line 174 "http11/c/http11.rl"
+#line 248 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf);
     }
@@ -871,12 +945,12 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 875 "http11/c/http11.c"
+#line 949 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st24;
 	goto st0;
 tr17:
-#line 192 "http11/c/http11.rl"
+#line 266 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -888,14 +962,14 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 892 "http11/c/http11.c"
+#line 966 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st14;
 		case 32: goto tr7;
 	}
 	goto st4;
 tr2:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -904,7 +978,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 908 "http11/c/http11.c"
+#line 982 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr3;
 		case 33: goto st2;
@@ -1043,7 +1117,7 @@ case 35:
 		goto tr51;
 	goto st0;
 tr51:
-#line 192 "http11/c/http11.rl"
+#line 266 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -1055,12 +1129,12 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 1059 "http11/c/http11.c"
+#line 1133 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr52;
 	goto st0;
 tr52:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -1069,7 +1143,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 1073 "http11/c/http11.c"
+#line 1147 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st38;
 	goto st0;
@@ -1088,7 +1162,7 @@ case 39:
 		goto tr55;
 	goto st0;
 tr55:
-#line 199 "http11/c/http11.rl"
+#line 273 "http11/c/http11.rl"
 	{
         handle_status_code_callback(parser, p, buf, parser->status_code);
 
@@ -1100,7 +1174,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1104 "http11/c/http11.c"
+#line 1178 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 13: goto tr58;
@@ -1113,7 +1187,7 @@ case 40:
 		goto st0;
 	goto tr56;
 tr56:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
@@ -1122,7 +1196,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1126 "http11/c/http11.c"
+#line 1200 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr60;
 		case 13: goto tr61;
@@ -1135,11 +1209,11 @@ case 41:
 		goto st0;
 	goto st41;
 tr58:
-#line 158 "http11/c/http11.rl"
+#line 232 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 206 "http11/c/http11.rl"
+#line 280 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1148,7 +1222,7 @@ tr58:
     }
 	goto st42;
 tr61:
-#line 206 "http11/c/http11.rl"
+#line 280 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1160,7 +1234,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1164 "http11/c/http11.c"
+#line 1238 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st14;
 	goto st0;
@@ -1213,7 +1287,7 @@ case 42:
 	_out: {}
 	}
 
-#line 312 "http11/c/http11.rl"
+#line 386 "http11/c/http11.rl"
 
     if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;
