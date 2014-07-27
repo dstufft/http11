@@ -36,6 +36,10 @@ def _load_cases():
 
 @pytest.mark.parametrize(("message", "expected"), _load_cases())
 def test_parsing(parser, data, message, expected):
-    http11.lib.HTTPParser_execute(parser, message, len(message), 0)
+    if not isinstance(message, list):
+        message = [message]
+
+    for chunk in message:
+        http11.lib.HTTPParser_execute(parser, chunk, len(chunk), 0)
 
     assert data == expected
