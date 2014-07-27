@@ -267,7 +267,9 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     }
 
     action request_uri {
-        handle_element_callback(parser, fpc, buf, parser->request_uri);
+        /* We use fpc -1 here because otherwise this will catch the SP in the
+           buffer. */
+        handle_element_callback(parser, fpc - 1, buf, parser->request_uri);
 
         if (parser->error)
             fgoto *http_parser_error;
@@ -314,12 +316,12 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     obs_fold = CRLF ( SP | HTAB )+ ;
 
     method = token >mark %request_method ;
-    request_target = ( any -- CRLF )+ >mark %request_uri ;
+    request_target = ( any -- CRLF )+ >mark ;
     http_version = ( "HTTP" "/" digit "." digit ) >mark %http_version ;
     status_code = digit{3} >mark %status_code ;
     reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
-    request_line = method SP request_target SP http_version CRLF ;
+    request_line = method SP request_target SP %request_uri http_version CRLF ;
     status_line = http_version SP status_code SP reason_phrase CRLF ;
     start_line = ( request_line | status_line ) ;
 

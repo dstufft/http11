@@ -243,7 +243,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
 
 
-#line 337 "http11/c/http11.rl"
+#line 339 "http11/c/http11.rl"
 
 
 
@@ -256,7 +256,7 @@ static const int http_parser_error = 0;
 static const int http_parser_en_main = 1;
 
 
-#line 341 "http11/c/http11.rl"
+#line 343 "http11/c/http11.rl"
 
 
 HTTPParser *HTTPParser_create() {
@@ -294,14 +294,14 @@ HTTPParser *HTTPParser_create() {
 
 void HTTPParser_init(HTTPParser *parser) {
     
-#line 378 "http11/c/http11.rl"
+#line 380 "http11/c/http11.rl"
     
 #line 300 "http11/c/http11.c"
 	{
 	 parser->state->cs = http_parser_start;
 	}
 
-#line 379 "http11/c/http11.rl"
+#line 381 "http11/c/http11.rl"
 
     parser->state->mark = -1;
     parser->state->header_name_end = 0;
@@ -361,7 +361,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
     pe = buf + length;
 
     
-#line 438 "http11/c/http11.rl"
+#line 440 "http11/c/http11.rl"
     
 #line 367 "http11/c/http11.c"
 	{
@@ -519,30 +519,29 @@ case 4:
 #line 520 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 	}
 	goto st4;
-tr7:
-#line 269 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->request_uri);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st5;
 st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 539 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 72: goto tr8;
 	}
 	goto st4;
 tr8:
+#line 269 "http11/c/http11.rl"
+	{
+        /* We use fpc -1 here because otherwise this will catch the SP in the
+           buffer. */
+        handle_element_callback(parser, p - 1, buf, parser->request_uri);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
 #line 246 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
@@ -552,10 +551,10 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 556 "http11/c/http11.c"
+#line 555 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 84: goto st7;
 	}
 	goto st4;
@@ -565,7 +564,7 @@ st7:
 case 7:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 84: goto st8;
 	}
 	goto st4;
@@ -575,7 +574,7 @@ st8:
 case 8:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 80: goto st9;
 	}
 	goto st4;
@@ -585,7 +584,7 @@ st9:
 case 9:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 47: goto st10;
 	}
 	goto st4;
@@ -595,7 +594,7 @@ st10:
 case 10:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 	}
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st11;
@@ -606,7 +605,7 @@ st11:
 case 11:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 		case 46: goto st12;
 	}
 	goto st4;
@@ -616,7 +615,7 @@ st12:
 case 12:
 	switch( (*p) ) {
 		case 10: goto st0;
-		case 32: goto tr7;
+		case 32: goto st5;
 	}
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st13;
@@ -628,11 +627,11 @@ case 13:
 	switch( (*p) ) {
 		case 10: goto tr16;
 		case 13: goto tr17;
-		case 32: goto tr7;
+		case 32: goto st5;
 	}
 	goto st4;
 tr16:
-#line 276 "http11/c/http11.rl"
+#line 278 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -645,7 +644,7 @@ tr57:
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 283 "http11/c/http11.rl"
+#line 285 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -654,7 +653,7 @@ tr57:
     }
 	goto st14;
 tr60:
-#line 283 "http11/c/http11.rl"
+#line 285 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -666,7 +665,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 670 "http11/c/http11.c"
+#line 669 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st43;
 		case 13: goto st15;
@@ -693,7 +692,7 @@ case 14:
 		goto tr20;
 	goto st0;
 tr37:
-#line 297 "http11/c/http11.rl"
+#line 299 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
@@ -705,10 +704,10 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 709 "http11/c/http11.c"
+#line 708 "http11/c/http11.c"
 	goto st0;
 tr38:
-#line 297 "http11/c/http11.rl"
+#line 299 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
@@ -720,7 +719,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 724 "http11/c/http11.c"
+#line 723 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st43;
 	goto st0;
@@ -731,7 +730,7 @@ tr20:
     }
 	goto st16;
 tr39:
-#line 297 "http11/c/http11.rl"
+#line 299 "http11/c/http11.rl"
 	{
         handle_header_callback(parser, buf);
 
@@ -747,7 +746,7 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 751 "http11/c/http11.c"
+#line 750 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 33: goto st16;
 		case 58: goto tr22;
@@ -792,7 +791,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 796 "http11/c/http11.c"
+#line 795 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr24;
 		case 10: goto tr25;
@@ -813,7 +812,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 817 "http11/c/http11.c"
+#line 816 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr28;
 		case 10: goto tr29;
@@ -834,7 +833,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 838 "http11/c/http11.c"
+#line 837 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st19;
 		case 10: goto st22;
@@ -869,7 +868,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 873 "http11/c/http11.c"
+#line 872 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st21;
 		case 10: goto st22;
@@ -933,7 +932,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 937 "http11/c/http11.c"
+#line 936 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st25;
 		case 10: goto tr37;
@@ -971,7 +970,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 975 "http11/c/http11.c"
+#line 974 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr41;
 		case 10: goto tr29;
@@ -1002,12 +1001,12 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 1006 "http11/c/http11.c"
+#line 1005 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st24;
 	goto st0;
 tr17:
-#line 276 "http11/c/http11.rl"
+#line 278 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -1019,10 +1018,10 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 1023 "http11/c/http11.c"
+#line 1022 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st14;
-		case 32: goto tr7;
+		case 32: goto st5;
 	}
 	goto st4;
 tr2:
@@ -1035,7 +1034,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 1039 "http11/c/http11.c"
+#line 1038 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr3;
 		case 33: goto st2;
@@ -1174,7 +1173,7 @@ case 35:
 		goto tr51;
 	goto st0;
 tr51:
-#line 276 "http11/c/http11.rl"
+#line 278 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->http_version);
 
@@ -1186,7 +1185,7 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 1190 "http11/c/http11.c"
+#line 1189 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr52;
 	goto st0;
@@ -1200,7 +1199,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 1204 "http11/c/http11.c"
+#line 1203 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st38;
 	goto st0;
@@ -1219,7 +1218,7 @@ case 39:
 		goto tr55;
 	goto st0;
 tr55:
-#line 290 "http11/c/http11.rl"
+#line 292 "http11/c/http11.rl"
 	{
         handle_status_code_callback(parser, p, buf, parser->status_code);
 
@@ -1231,7 +1230,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1235 "http11/c/http11.c"
+#line 1234 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 13: goto tr58;
@@ -1253,7 +1252,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1257 "http11/c/http11.c"
+#line 1256 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr60;
 		case 13: goto tr61;
@@ -1270,7 +1269,7 @@ tr58:
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-#line 283 "http11/c/http11.rl"
+#line 285 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1279,7 +1278,7 @@ tr58:
     }
 	goto st42;
 tr61:
-#line 283 "http11/c/http11.rl"
+#line 285 "http11/c/http11.rl"
 	{
         handle_element_callback(parser, p, buf, parser->reason_phrase);
 
@@ -1291,7 +1290,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1295 "http11/c/http11.c"
+#line 1294 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st14;
 	goto st0;
@@ -1344,7 +1343,7 @@ case 42:
 	_out: {}
 	}
 
-#line 439 "http11/c/http11.rl"
+#line 441 "http11/c/http11.rl"
 
     if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;
