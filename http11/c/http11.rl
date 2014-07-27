@@ -123,7 +123,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     char *newvalue;
     size_t left;
     size_t newvaluelen = 0;
-    bool first = true;
+    bool output = false;
 
     if (parser->http_header != NULL) {
         /* Determine if we have a \r\n inside of our header value, if we do
@@ -153,29 +153,29 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             }
 
             while (found != NULL && left > 0) {
-                if (!first) {
-                    /* If this is not the first time through the loop, then add
-                       add s space to our new value. We do this here because
-                       we *only* want to add this, if there is another bit to
-                       memcpy. */
-                    *dest = ' ';
-                    dest++;
-                    newvaluelen++;
-                } else {
-                    first = false;
+                if ((found - src) > 0) {
+                    if (output) {
+                        /* If we've already had output, then go ahead and add
+                           a space. */
+                        *dest = ' ';
+                        dest++;
+                        newvaluelen++;
+                    }
+
+                    /* Copy everything to the left of our "\r\n " */
+                    memcpy(dest, src, found - src);
+
+                    /* Record how much bigger our newvalue is now */
+                    newvaluelen += (found - src);
+
+                    /* Move our dest pointer to the end of the copied data */
+                    dest += (found - src);
+
+                    output = true;
                 }
-
-                /* Copy everything to the left of our "\r\n " */
-                memcpy(dest, src, found - src);
-
-                /* Record how much bigger our newvalue is now */
-                newvaluelen += (found - src);
 
                 /* Decrement how much of our value is left to search */
                 left -= ((found - src) + 3);
-
-                /* Move our dest pointer to the end of the just copied data */
-                dest += (found - src);
 
                 /* Move our src pointer to just past the "\r\n " */
                 src = found + 3;
@@ -205,9 +205,11 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
             /* Copy anything left over in our value */
             if (left > 0) {
-                *dest = ' ';
-                dest++;
-                newvaluelen++;
+                if (output) {
+                    *dest = ' ';
+                    dest++;
+                    newvaluelen++;
+                }
 
                 memcpy(dest, src, left);
                 newvaluelen += left;
