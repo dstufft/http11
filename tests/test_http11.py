@@ -45,3 +45,79 @@ def test_parsing(parser, data, message, expected):
     assert data == expected
     assert parser.finished
     assert not parser.error
+
+
+@pytest.mark.parametrize(("message", "expected"), _load_cases())
+def test_number_callbacks(message, expected):
+    if not isinstance(message, list):
+        message = [message]
+
+    class CallRecorder(object):
+
+        def __init__(self):
+            self.calls = 0
+
+        def __call__(self, *args, **kwargs):
+            self.calls += 1
+            return 0
+
+    parser = http11.lib.HTTPParser_create()
+
+    request_method = CallRecorder()
+    parser.request_method = c1 = http11.ffi.callback(
+        "int(const char *value, size_t length)",
+        request_method,
+    )
+
+    request_uri = CallRecorder()
+    parser.request_uri = c2 = http11.ffi.callback(
+        "int(const char *value, size_t length)",
+        request_uri,
+    )
+
+    http_version = CallRecorder()
+    parser.http_version = c3 = http11.ffi.callback(
+        "int(const char *value, size_t length)",
+        http_version,
+    )
+
+    reason_phrase = CallRecorder()
+    parser.reason_phrase = c4 = http11.ffi.callback(
+        "int(const char *value, size_t length)",
+        reason_phrase,
+    )
+
+    status_code = CallRecorder()
+    parser.status_code = c5 = http11.ffi.callback(
+        "int(const unsigned short)",
+        status_code,
+    )
+
+    http_header = CallRecorder()
+    parser.http_header = c6 = http11.ffi.callback(
+        "int(const char *name, size_t namelen, const char *value, "
+        "size_t valuelen)",
+        http_header,
+    )
+
+    http11.lib.HTTPParser_init(parser)
+
+    for chunk in message:
+        http11.lib.HTTPParser_execute(parser, chunk, len(chunk), 0)
+
+    http11.lib.HTTPParser_destroy(parser)
+
+    assert request_method.calls == (1 if "request_method" in expected else 0)
+    assert request_uri.calls == (1 if "request_uri" in expected else 0)
+    assert http_version.calls == 1
+    assert reason_phrase.calls == (1 if "reason_phrase" in expected else 0)
+    assert status_code.calls == (1 if "status_code" in expected else 0)
+    assert http_header.calls == sum(
+        len(v) for v in (
+            expected["headers"].values() if "headers" in expected else []
+        )
+    )
+
+    # Quick hack to prevent pep8 linting from saying these variables are
+    # unused.
+    c1, c2, c3, c4, c5, c6
