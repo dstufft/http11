@@ -25,10 +25,12 @@
 struct _HTTPParserState {
   int cs;
   int mark;
-  int header_name_start;
   int header_name_end;
   int header_value_start;
   int header_value_end;
+
+  char *tmp;
+  size_t tmplen;
 };
 
 
@@ -83,6 +85,8 @@ static void handle_element_callback(HTTPParser *parser,
             calculate_length(fpc, buf, parser->state->mark)
         );
     }
+
+    parser->state->mark = -1;
 }
 
 
@@ -107,13 +111,18 @@ static void handle_status_code_callback(HTTPParser *parser,
 
         parser->error = callback((const unsigned short)code);
     }
+
+    parser->state->mark = -1;
 }
 
 static void handle_header_callback(HTTPParser *parser, const char *buf)
 {
-    const char *name = create_pointer(buf, parser->state->header_name_start);
-    const char *value = create_pointer(buf, parser->state->header_value_start);
-    size_t namelen = parser->state->header_name_end - parser->state->header_name_start;
+    const char *name = create_pointer(buf, parser->state->mark);
+    const char *value = create_pointer(
+        buf,
+        parser->state->mark + parser->state->header_value_start
+    );
+    size_t namelen = parser->state->header_name_end;
     size_t valuelen = parser->state->header_value_end - parser->state->header_value_start;
 
     const char *found;
@@ -226,6 +235,8 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             parser->error = parser->http_header(name, namelen, value, valuelen);
         }
     }
+
+    parser->state->mark = -1;
 }
 
 
@@ -236,20 +247,16 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
         parser->state->mark = calculate_offset(fpc, buf);
     }
 
-    action header_name_start {
-        parser->state->header_name_start = calculate_offset(fpc, buf);
-    }
-
     action header_name_end {
-        parser->state->header_name_end = calculate_offset(fpc, buf);
+        parser->state->header_name_end = calculate_offset(fpc, buf) - parser->state->mark;
     }
 
     action header_value_start {
-        parser->state->header_value_start = calculate_offset(fpc, buf);
+        parser->state->header_value_start = calculate_offset(fpc, buf) - parser->state->mark;
     }
 
     action header_value_end {
-        parser->state->header_value_end = calculate_offset(fpc, buf);
+        parser->state->header_value_end = calculate_offset(fpc, buf) - parser->state->mark;
     }
 
     action request_method {
@@ -316,7 +323,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     status_line = http_version SP status_code SP reason_phrase CRLF ;
     start_line = ( request_line | status_line ) ;
 
-    field_name = token >header_name_start %header_name_end ;
+    field_name = token >mark %header_name_end ;
     field_vchar = ( VCHAR | obs_text ) ;
     field_content = field_vchar ( ( SP | HTAB )+ field_vchar )? ;
     field_value = ( field_content | obs_fold )* >header_value_start
@@ -354,6 +361,10 @@ HTTPParser *HTTPParser_create() {
     parser->reason_phrase = NULL;
     parser->http_header = NULL;
 
+    /* Done here so we can tell the difference between uninitialized and
+       initialized in HTTPParser_init */
+    parser->state->tmp = NULL;
+
     return parser;
 
     error:
@@ -366,11 +377,17 @@ void HTTPParser_init(HTTPParser *parser) {
     %% access parser->state->;
     %% write init;
 
-    parser->state->mark = 0;
-    parser->state->header_name_start = 0;
+    parser->state->mark = -1;
     parser->state->header_name_end = 0;
     parser->state->header_value_start = 0;
     parser->state->header_value_end = 0;
+
+    parser->state->tmplen = 0;
+
+    if (parser->state->tmp != NULL) {
+        free(parser->state->tmp);
+        parser->state->tmp = NULL;
+    }
 
     parser->finished = false;
     parser->error = 0;
@@ -381,8 +398,41 @@ size_t HTTPParser_execute(HTTPParser *parser,
                           const char *buf,
                           size_t length,
                           size_t offset) {
-    const char *p = buf + offset;
-    const char *pe = buf + length;
+    char *rtmp;
+    const char *p;
+    const char *pe;
+
+    /* If we have anything stored in our temp buffer, then we want to use that
+       buffer combined with the new buffer instead of just using the new
+       buffer. */
+    if (parser->state->tmp != NULL) {
+        parser->state->tmplen += (length - offset);
+
+        /* Resize our temp buffer to also hold the additional data */
+        rtmp = realloc(parser->state->tmp, parser->state->tmplen);
+        if (rtmp == NULL)
+            goto error;
+        parser->state->tmp = rtmp;
+
+        /* Copy the data from the new buffer into our temporary buffer. */
+        memcpy(
+            parser->state->tmp + (parser->state->tmplen - (length - offset)),
+            buf + offset,
+            length - offset
+        );
+
+        /* point the buf to our new buffer now, and point the mark to the
+           beginning. */
+        buf = parser->state->tmp;
+        parser->state->mark = 0;
+
+        /* Adjust our length and offset to match the new buffer. */
+        offset = parser->state->tmplen - (length - offset);
+        length = parser->state->tmplen;
+    }
+
+    p = buf + offset;
+    pe = buf + length;
 
     %% access parser->state->;
     %% write exec;
@@ -393,15 +443,53 @@ size_t HTTPParser_execute(HTTPParser *parser,
         if (parser->state->cs == http_parser_error && !parser->error) {
             parser->error = 1;
         }
+
+        /* We've finished parsing the request, if we have a tmp buffer
+           allocated then we want to free it. */
+        if (parser->state->tmp != NULL) {
+            free(parser->state->tmp);
+            parser->state->tmp = NULL;
+        }
+    } else if (parser->state->mark >= 0) {
+        /* If the parser isn't finished and we have anything marked then we
+           need to save the trailing part of the buffer. */
+        parser->state->tmplen = calculate_length(pe, buf, parser->state->mark);
+
+        rtmp = realloc(parser->state->tmp, parser->state->tmplen);
+        if (rtmp == NULL)
+            goto error;
+        parser->state->tmp = rtmp;
+
+        memcpy(
+            parser->state->tmp,
+            create_pointer(buf, parser->state->mark),
+            parser->state->tmplen
+        );
+    } else {
+        /* If the parser isn't finished, but we have nothing marked, then there
+           is nothing to save. If we have anything in our tmp buffer then we
+           should free it as it's no longer needed. */
+        if (parser->state->tmp != NULL) {
+            free(parser->state->tmp);
+            parser->state->tmp = NULL;
+        }
     }
 
     return 1;
+
+    error:
+        parser->finished = true;
+        parser->error = 1;
+        return 1;
 }
 
 
 void HTTPParser_destroy(HTTPParser *parser) {
     if (parser) {
-        free(parser->state);
+        if (parser->state != NULL) {
+            free(parser->state->tmp);
+            free(parser->state);
+        }
         free(parser);
     }
 }
