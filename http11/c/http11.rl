@@ -484,12 +484,12 @@ size_t HTTPParser_execute(HTTPParser *parser,
         }
     }
 
-    return 1;
+    return (length - offset) - (pe - p);
 
     error:
         parser->finished = true;
         parser->error = 1;
-        return 1;
+        return (length - offset) - (pe - p);
 }
 
 

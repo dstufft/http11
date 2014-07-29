@@ -40,7 +40,8 @@ def test_parsing(parser, data, message, expected):
         message = [message]
 
     for chunk in message:
-        http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        parsed = http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        assert parsed == len(chunk)
 
     assert data == expected
     assert parser.finished
@@ -103,7 +104,8 @@ def test_number_callbacks(message, expected):
     http11.lib.HTTPParser_init(parser)
 
     for chunk in message:
-        http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        parsed = http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        assert parsed == len(chunk)
 
     http11.lib.HTTPParser_destroy(parser)
 
@@ -126,9 +128,9 @@ def test_number_callbacks(message, expected):
 def test_offset_length(parser, data):
     msg = b"GET / HTTP/1.1\r\nFoo: Bar\r\n\r\n"
 
-    http11.lib.HTTPParser_execute(parser, msg, 0, 16)
-    http11.lib.HTTPParser_execute(parser, msg, 16, 20)
-    http11.lib.HTTPParser_execute(parser, msg, 20, 28)
+    assert http11.lib.HTTPParser_execute(parser, msg, 0, 16) == 16
+    assert http11.lib.HTTPParser_execute(parser, msg, 16, 20) == 4
+    assert http11.lib.HTTPParser_execute(parser, msg, 20, 28) == 8
 
     assert data == {
         "request_method": b"GET",
