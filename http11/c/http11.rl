@@ -307,6 +307,10 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             fgoto *http_parser_error;
     }
 
+    action invalid_http_version {
+        parser->error = EHTTP505;
+    }
+
     action done {
         fbreak;
     }
@@ -325,7 +329,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark ;
-    http_version = ( "HTTP" "/" digit "." digit ) >mark %http_version ;
+    http_version = ( "HTTP" "/" "1" "." digit ) $lerr(invalid_http_version) >mark %http_version ;
     status_code = digit{3} >mark %status_code ;
     reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
@@ -414,6 +418,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
     char *rtmp;
     const char *p;
     const char *pe;
+    const char *eof = NULL;
 
     /* If we have anything stored in our temp buffer, then we want to use that
        buffer combined with the new buffer instead of just using the new
