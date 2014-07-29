@@ -307,6 +307,10 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             fgoto *http_parser_error;
     }
 
+    action done {
+        fbreak;
+    }
+
     CRLF = ( "\r\n" | "\n" ) ;
     SP = " " ;
     VCHAR = graph ;
@@ -338,7 +342,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
     http_message = start_line header_field* CRLF ;
 
-main := http_message;
+main := http_message @done;
 
 }%%
 
