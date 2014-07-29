@@ -40,7 +40,7 @@ def test_parsing(parser, data, message, expected):
         message = [message]
 
     for chunk in message:
-        http11.lib.HTTPParser_execute(parser, chunk, len(chunk), 0)
+        http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
 
     assert data == expected
     assert parser.finished
@@ -103,7 +103,7 @@ def test_number_callbacks(message, expected):
     http11.lib.HTTPParser_init(parser)
 
     for chunk in message:
-        http11.lib.HTTPParser_execute(parser, chunk, len(chunk), 0)
+        http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
 
     http11.lib.HTTPParser_destroy(parser)
 
@@ -121,3 +121,22 @@ def test_number_callbacks(message, expected):
     # Quick hack to prevent pep8 linting from saying these variables are
     # unused.
     c1, c2, c3, c4, c5, c6
+
+
+def test_offset_length(parser, data):
+    msg = b"GET / HTTP/1.1\r\nFoo: Bar\r\n\r\n"
+
+    http11.lib.HTTPParser_execute(parser, msg, 0, 16)
+    http11.lib.HTTPParser_execute(parser, msg, 16, 20)
+    http11.lib.HTTPParser_execute(parser, msg, 20, 28)
+
+    assert data == {
+        "request_method": b"GET",
+        "request_uri": b"/",
+        "http_version": b"HTTP/1.1",
+        "headers": {
+            b"Foo": [b"Bar"],
+        }
+    }
+    assert parser.finished
+    assert not parser.error
