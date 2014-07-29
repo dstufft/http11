@@ -12,9 +12,14 @@
  */
 
 #include <stddef.h>
+#include <errno.h>
 
 #ifndef _http11_h
 #define _http11_h
+
+
+#define EINVALIDMSG -1  /* The message was invalid an unable to be parsed */
+
 
 typedef enum {false, true} bool;
 

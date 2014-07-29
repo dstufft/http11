@@ -110,7 +110,7 @@ static void handle_status_code_callback(HTTPParser *parser,
         errno = 0;
         code = strtoul(s, NULL, 10);
         if (errno) {
-            parser->error = 1;
+            parser->error = EINVALIDMSG;
             return;
         }
 
@@ -164,7 +164,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             left = valuelen;
 
             if (newvalue == NULL) {
-                parser->error = 1;
+                parser->error = ENOMEM;
                 return;
             }
 
@@ -343,8 +343,14 @@ size_t HTTPParser_execute(HTTPParser *parser,
 
         /* Resize our temp buffer to also hold the additional data */
         rtmp = realloc(parser->state->tmp, parser->state->tmplen);
-        if (rtmp == NULL)
-            goto error;
+        if (rtmp == NULL) {
+            /* TODO: Do we really need to finish the parser if we can't
+                     realloc? Another call with the same data might succeed I
+                     Think? */
+            parser->finished = true;
+            parser->error = ENOMEM;
+            return 0;
+        }
         parser->state->tmp = rtmp;
 
         /* Copy the data from the new buffer into our temporary buffer. */
@@ -368,9 +374,9 @@ size_t HTTPParser_execute(HTTPParser *parser,
     pe = buf + length;
 
     
-#line 451 "http11/c/http11.rl"
+#line 457 "http11/c/http11.rl"
     
-#line 374 "http11/c/http11.c"
+#line 380 "http11/c/http11.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -471,7 +477,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 475 "http11/c/http11.c"
+#line 481 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr3;
 		case 33: goto st2;
@@ -509,7 +515,7 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 513 "http11/c/http11.c"
+#line 519 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st0;
 	goto tr5;
@@ -523,7 +529,7 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 527 "http11/c/http11.c"
+#line 533 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto st5;
@@ -558,7 +564,7 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 562 "http11/c/http11.c"
+#line 568 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st0;
 		case 32: goto st5;
@@ -672,7 +678,7 @@ st14:
 	if ( ++p == pe )
 		goto _test_eof14;
 case 14:
-#line 676 "http11/c/http11.c"
+#line 682 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr18;
 		case 13: goto st15;
@@ -721,7 +727,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 725 "http11/c/http11.c"
+#line 731 "http11/c/http11.c"
 	goto st0;
 tr38:
 #line 303 "http11/c/http11.rl"
@@ -736,7 +742,7 @@ st15:
 	if ( ++p == pe )
 		goto _test_eof15;
 case 15:
-#line 740 "http11/c/http11.c"
+#line 746 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto tr18;
 	goto st0;
@@ -763,7 +769,7 @@ st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 767 "http11/c/http11.c"
+#line 773 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 33: goto st16;
 		case 58: goto tr22;
@@ -808,7 +814,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 812 "http11/c/http11.c"
+#line 818 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr24;
 		case 10: goto tr25;
@@ -829,7 +835,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 833 "http11/c/http11.c"
+#line 839 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr28;
 		case 10: goto tr29;
@@ -850,7 +856,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 854 "http11/c/http11.c"
+#line 860 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st19;
 		case 10: goto st22;
@@ -885,7 +891,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 889 "http11/c/http11.c"
+#line 895 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st21;
 		case 10: goto st22;
@@ -949,7 +955,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 953 "http11/c/http11.c"
+#line 959 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st25;
 		case 10: goto tr37;
@@ -987,7 +993,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 991 "http11/c/http11.c"
+#line 997 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto tr41;
 		case 10: goto tr29;
@@ -1018,7 +1024,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 1022 "http11/c/http11.c"
+#line 1028 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st24;
 	goto st0;
@@ -1035,7 +1041,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 1039 "http11/c/http11.c"
+#line 1045 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto st14;
 		case 32: goto st5;
@@ -1051,7 +1057,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 1055 "http11/c/http11.c"
+#line 1061 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 32: goto tr3;
 		case 33: goto st2;
@@ -1202,7 +1208,7 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 1206 "http11/c/http11.c"
+#line 1212 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr52;
 	goto st0;
@@ -1216,7 +1222,7 @@ st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 1220 "http11/c/http11.c"
+#line 1226 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto st38;
 	goto st0;
@@ -1247,7 +1253,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1251 "http11/c/http11.c"
+#line 1257 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr57;
 		case 13: goto tr58;
@@ -1269,7 +1275,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 1273 "http11/c/http11.c"
+#line 1279 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr60;
 		case 13: goto tr61;
@@ -1307,7 +1313,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1311 "http11/c/http11.c"
+#line 1317 "http11/c/http11.c"
 	if ( (*p) == 10 )
 		goto st14;
 	goto st0;
@@ -1360,13 +1366,13 @@ case 42:
 	_out: {}
 	}
 
-#line 452 "http11/c/http11.rl"
+#line 458 "http11/c/http11.rl"
 
     if (parser->state->cs == http_parser_error || parser->state->cs >= http_parser_first_final ) {
         parser->finished = true;
 
         if (parser->state->cs == http_parser_error && !parser->error) {
-            parser->error = 1;
+            parser->error = EINVALIDMSG;
         }
 
         /* We've finished parsing the request, if we have a tmp buffer
@@ -1382,7 +1388,11 @@ case 42:
 
         rtmp = realloc(parser->state->tmp, parser->state->tmplen);
         if (rtmp == NULL)
-            goto error;
+        {
+            parser->finished = true;
+            parser->error = ENOMEM;
+            return (length - offset) - (pe - p);
+        }
         parser->state->tmp = rtmp;
 
         memcpy(
@@ -1401,11 +1411,6 @@ case 42:
     }
 
     return (length - offset) - (pe - p);
-
-    error:
-        parser->finished = true;
-        parser->error = 1;
-        return (length - offset) - (pe - p);
 }
 
 
