@@ -53,8 +53,8 @@ HTTPParser *HTTPParser_create();
 void HTTPParser_init(HTTPParser *parser);
 size_t HTTPParser_execute(HTTPParser *parser,
                           const char *buf,
-                          size_t length,
-                          size_t offset);
+                          size_t offset,
+                          size_t length);
 void HTTPParser_destroy(HTTPParser *parser);
 
 #endif
