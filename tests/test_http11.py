@@ -142,3 +142,20 @@ def test_offset_length(parser, data):
     }
     assert parser.finished
     assert not parser.error
+
+
+def test_doesnt_read_past_end(parser, data):
+    msg = b"GET / HTTP/1.1\r\nFoo: Bar\r\n\r\nThis data should not be read."
+
+    assert http11.lib.HTTPParser_execute(parser, msg, 0, len(msg)) == 28
+
+    assert data == {
+        "request_method": b"GET",
+        "request_uri": b"/",
+        "http_version": b"HTTP/1.1",
+        "headers": {
+            b"Foo": [b"Bar"],
+        }
+    }
+    assert parser.finished
+    assert not parser.error
