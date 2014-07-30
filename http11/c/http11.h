@@ -18,7 +18,7 @@
 #define _http11_h
 
 
-#define EINVALIDMSG -1   /* The message was invalid an unable to be parsed */
+#define EHTTP400    -400 /* The message was invalid an unable to be parsed */
 #define EHTTP505    -505 /* The HTTP version was invalid */
 
 

@@ -110,7 +110,7 @@ static void handle_status_code_callback(HTTPParser *parser,
         errno = 0;
         code = strtoul(s, NULL, 10);
         if (errno) {
-            parser->error = EINVALIDMSG;
+            parser->error = EHTTP400;
             return;
         }
 
@@ -1455,7 +1455,7 @@ case 42:
         parser->finished = true;
 
         if (parser->state->cs == http_parser_error && !parser->error) {
-            parser->error = EINVALIDMSG;
+            parser->error = EHTTP400;
         }
 
         /* We've finished parsing the request, if we have a tmp buffer
