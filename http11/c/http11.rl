@@ -334,7 +334,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark ;
-    http_version = ( "HTTP" "/" "1" "." digit ) $lerr(invalid_http_version) >mark %http_version ;
+    http_version = ( "HTTP" "/" "1" "." digit ) <lerr(invalid_http_version) >mark %http_version ;
     status_code = digit{3} >mark %status_code ;
     reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
