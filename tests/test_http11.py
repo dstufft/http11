@@ -175,3 +175,13 @@ def test_http_version_error(msg, parser, data):
 
     assert parser.finished
     assert parser.error == http11.lib.EHTTP505
+
+
+def test_eof_handling(parser):
+    msg = b"HTTP/1.2 200 OK\r\nFoo: Bar\r\n"
+
+    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+    http11.lib.HTTPParser_execute(parser, http11.ffi.NULL, 0, 0)
+
+    assert parser.finished
+    assert parser.error == http11.lib.EEOF
