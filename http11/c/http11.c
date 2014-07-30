@@ -110,7 +110,7 @@ static void handle_status_code_callback(HTTPParser *parser,
         errno = 0;
         code = strtoul(s, NULL, 10);
         if (errno) {
-            parser->error = EHTTP400;
+            parser->error = EINVALIDMSG;
             return;
         }
 
@@ -476,7 +476,7 @@ case 1:
 tr0:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st0;
 #line 483 "http11/c/http11.c"
@@ -486,7 +486,7 @@ st0:
 tr1:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st2;
 st2:
@@ -522,7 +522,7 @@ case 2:
 tr2:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st3;
 st3:
@@ -536,7 +536,7 @@ case 3:
 tr53:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st4;
 tr3:
@@ -546,7 +546,7 @@ tr3:
     }
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st4;
 tr8:
@@ -603,7 +603,7 @@ tr52:
     }
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st5;
 st5:
@@ -617,7 +617,7 @@ case 5:
 tr14:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st6;
 tr11:
@@ -639,7 +639,7 @@ case 6:
 tr15:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 	goto st7;
 st7:
@@ -753,7 +753,7 @@ case 15:
 tr24:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 #line 282 "http11/c/http11.rl"
 	{
@@ -1151,7 +1151,7 @@ case 28:
 tr25:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 #line 282 "http11/c/http11.rl"
 	{
@@ -1322,7 +1322,7 @@ case 37:
 tr61:
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 #line 282 "http11/c/http11.rl"
 	{
@@ -1560,7 +1560,7 @@ case 44:
 	case 36: 
 #line 310 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 #line 318 "http11/c/http11.rl"
 	{
@@ -1581,7 +1581,7 @@ case 44:
         parser->finished = true;
 
         if (parser->state->cs == http_parser_error && !parser->error) {
-            parser->error = EHTTP400;
+            parser->error = EINVALIDMSG;
         }
 
         /* We've finished parsing the request, if we have a tmp buffer
