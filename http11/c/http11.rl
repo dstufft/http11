@@ -338,7 +338,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     status_code = digit{3} >mark %status_code ;
     reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
-    request_line = method SP request_target SP %request_uri http_version CRLF ;
+    request_line = CRLF* method SP request_target SP %request_uri http_version CRLF ;
     status_line = http_version SP status_code ( SP reason_phrase )? CRLF ;
     start_line = ( request_line | status_line ) ;
 
