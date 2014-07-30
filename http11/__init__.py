@@ -24,6 +24,9 @@ SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "c"))
 
 # Write out our cdef to bind data to our FFI instance
 CDEF = """
+    #define EHTTP400 ...
+    #define EHTTP505 ...
+
     typedef struct _HTTPParserState *HTTPParserState;
 
     typedef int (*element_cb)(const char *buf, size_t length);

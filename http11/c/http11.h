@@ -12,9 +12,15 @@
  */
 
 #include <stddef.h>
+#include <errno.h>
 
 #ifndef _http11_h
 #define _http11_h
+
+
+#define EHTTP400    -400 /* The message was invalid an unable to be parsed */
+#define EHTTP505    -505 /* The HTTP version was invalid */
+
 
 typedef enum {false, true} bool;
 

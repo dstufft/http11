@@ -108,7 +108,7 @@ static void handle_status_code_callback(HTTPParser *parser,
         errno = 0;
         code = strtoul(s, NULL, 10);
         if (errno) {
-            parser->error = 1;
+            parser->error = EHTTP400;
             return;
         }
 
@@ -162,7 +162,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             left = valuelen;
 
             if (newvalue == NULL) {
-                parser->error = 1;
+                parser->error = ENOMEM;
                 return;
             }
 
@@ -307,6 +307,10 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
             fgoto *http_parser_error;
     }
 
+    action invalid_http_version {
+        parser->error = EHTTP505;
+    }
+
     action done {
         fbreak;
     }
@@ -325,7 +329,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
     method = token >mark %request_method ;
     request_target = ( any -- CRLF )+ >mark ;
-    http_version = ( "HTTP" "/" digit "." digit ) >mark %http_version ;
+    http_version = ( "HTTP" "/" "1" "." digit ) $lerr(invalid_http_version) >mark %http_version ;
     status_code = digit{3} >mark %status_code ;
     reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
 
@@ -414,6 +418,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
     char *rtmp;
     const char *p;
     const char *pe;
+    const char *eof = NULL;
 
     /* If we have anything stored in our temp buffer, then we want to use that
        buffer combined with the new buffer instead of just using the new
@@ -423,8 +428,14 @@ size_t HTTPParser_execute(HTTPParser *parser,
 
         /* Resize our temp buffer to also hold the additional data */
         rtmp = realloc(parser->state->tmp, parser->state->tmplen);
-        if (rtmp == NULL)
-            goto error;
+        if (rtmp == NULL) {
+            /* TODO: Do we really need to finish the parser if we can't
+                     realloc? Another call with the same data might succeed I
+                     Think? */
+            parser->finished = true;
+            parser->error = ENOMEM;
+            return 0;
+        }
         parser->state->tmp = rtmp;
 
         /* Copy the data from the new buffer into our temporary buffer. */
@@ -454,7 +465,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
         parser->finished = true;
 
         if (parser->state->cs == http_parser_error && !parser->error) {
-            parser->error = 1;
+            parser->error = EHTTP400;
         }
 
         /* We've finished parsing the request, if we have a tmp buffer
@@ -470,7 +481,11 @@ size_t HTTPParser_execute(HTTPParser *parser,
 
         rtmp = realloc(parser->state->tmp, parser->state->tmplen);
         if (rtmp == NULL)
-            goto error;
+        {
+            parser->finished = true;
+            parser->error = ENOMEM;
+            return (length - offset) - (pe - p);
+        }
         parser->state->tmp = rtmp;
 
         memcpy(
@@ -489,11 +504,6 @@ size_t HTTPParser_execute(HTTPParser *parser,
     }
 
     return (length - offset) - (pe - p);
-
-    error:
-        parser->finished = true;
-        parser->error = 1;
-        return (length - offset) - (pe - p);
 }
 
 
