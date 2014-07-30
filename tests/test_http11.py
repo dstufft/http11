@@ -185,3 +185,29 @@ def test_eof_handling(parser):
 
     assert parser.finished
     assert parser.error == http11.lib.EEOF
+
+
+def test_leading_crlf(parser, data):
+    """
+    In the interest of robustness, a server that is expecting to receive and
+    parse a request-line SHOULD ignore at least one empty line (CRLF) received
+    prior to the request-line.
+    """
+    msg = b"\r\n\r\n\r\n\r\nGET / HTTP/1.1\r\n\r\n"
+
+    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+
+    assert data == {
+        "request_method": b"GET",
+        "request_uri": b"/",
+        "http_version": b"HTTP/1.1",
+    }
+    assert parser.finished
+    assert not parser.error
+
+    msg = b"\r\n\r\n\r\n\r\nHTTP/1.1 200 OK\r\n\r\n"
+
+    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+
+    assert parser.finished
+    assert parser.error == http11.lib.EHTTP400

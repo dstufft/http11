@@ -254,7 +254,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
 #line 256 "http11/c/http11.c"
 static const int http_parser_start = 1;
-static const int http_parser_first_final = 43;
+static const int http_parser_first_final = 45;
 static const int http_parser_error = 0;
 
 static const int http_parser_en_main = 1;
@@ -404,9 +404,9 @@ _again:
 		case 12: goto st12;
 		case 13: goto st13;
 		case 14: goto st14;
-		case 43: goto st43;
 		case 15: goto st15;
 		case 16: goto st16;
+		case 45: goto st45;
 		case 17: goto st17;
 		case 18: goto st18;
 		case 19: goto st19;
@@ -433,6 +433,8 @@ _again:
 		case 40: goto st40;
 		case 41: goto st41;
 		case 42: goto st42;
+		case 43: goto st43;
+		case 44: goto st44;
 	default: break;
 	}
 
@@ -446,28 +448,30 @@ st1:
 		goto _test_eof1;
 case 1:
 	switch( (*p) ) {
-		case 33: goto tr1;
-		case 72: goto tr2;
-		case 124: goto tr1;
-		case 126: goto tr1;
+		case 10: goto tr1;
+		case 13: goto tr2;
+		case 33: goto tr3;
+		case 72: goto tr4;
+		case 124: goto tr3;
+		case 126: goto tr3;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) > 39 ) {
 			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr1;
+				goto tr3;
 		} else if ( (*p) >= 35 )
-			goto tr1;
+			goto tr3;
 	} else if ( (*p) > 46 ) {
 		if ( (*p) < 65 ) {
 			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr1;
+				goto tr3;
 		} else if ( (*p) > 90 ) {
 			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr1;
+				goto tr3;
 		} else
-			goto tr1;
+			goto tr3;
 	} else
-		goto tr1;
+		goto tr3;
 	goto tr0;
 tr0:
 #line 310 "http11/c/http11.rl"
@@ -475,21 +479,11 @@ tr0:
         parser->error = EHTTP505;
     }
 	goto st0;
-#line 479 "http11/c/http11.c"
+#line 483 "http11/c/http11.c"
 st0:
  parser->state->cs = 0;
 	goto _out;
-tr48:
-#line 310 "http11/c/http11.rl"
-	{
-        parser->error = EHTTP505;
-    }
-	goto st2;
 tr1:
-#line 250 "http11/c/http11.rl"
-	{
-        parser->state->mark = calculate_offset(p, buf);
-    }
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -499,48 +493,33 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 503 "http11/c/http11.c"
+#line 497 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 32: goto tr3;
-		case 33: goto st2;
-		case 124: goto st2;
-		case 126: goto st2;
+		case 10: goto st2;
+		case 13: goto st3;
+		case 33: goto tr8;
+		case 124: goto tr8;
+		case 126: goto tr8;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) > 39 ) {
 			if ( 42 <= (*p) && (*p) <= 43 )
-				goto st2;
+				goto tr8;
 		} else if ( (*p) >= 35 )
-			goto st2;
+			goto tr8;
 	} else if ( (*p) > 46 ) {
 		if ( (*p) < 65 ) {
 			if ( 48 <= (*p) && (*p) <= 57 )
-				goto st2;
+				goto tr8;
 		} else if ( (*p) > 90 ) {
 			if ( 94 <= (*p) && (*p) <= 122 )
-				goto st2;
+				goto tr8;
 		} else
-			goto st2;
+			goto tr8;
 	} else
-		goto st2;
+		goto tr8;
 	goto st0;
-tr3:
-#line 266 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->request_method);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st3;
-tr47:
-#line 266 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->request_method);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
+tr2:
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -550,17 +529,27 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 554 "http11/c/http11.c"
+#line 533 "http11/c/http11.c"
 	if ( (*p) == 10 )
-		goto st0;
-	goto tr6;
-tr9:
+		goto st2;
+	goto st0;
+tr53:
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
     }
 	goto st4;
-tr6:
+tr3:
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
+    }
+#line 310 "http11/c/http11.rl"
+	{
+        parser->error = EHTTP505;
+    }
+	goto st4;
+tr8:
 #line 250 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
@@ -570,13 +559,48 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 574 "http11/c/http11.c"
+#line 563 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 10: goto st0;
-		case 32: goto st5;
+		case 32: goto tr9;
+		case 33: goto st4;
+		case 124: goto st4;
+		case 126: goto st4;
 	}
-	goto st4;
-tr10:
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto st4;
+		} else if ( (*p) >= 35 )
+			goto st4;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto st4;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto st4;
+		} else
+			goto st4;
+	} else
+		goto st4;
+	goto st0;
+tr9:
+#line 266 "http11/c/http11.rl"
+	{
+        handle_element_callback(parser, p, buf, parser->request_method);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
+	goto st5;
+tr52:
+#line 266 "http11/c/http11.rl"
+	{
+        handle_element_callback(parser, p, buf, parser->request_method);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -586,14 +610,50 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 590 "http11/c/http11.c"
+#line 614 "http11/c/http11.c"
+	if ( (*p) == 10 )
+		goto st0;
+	goto tr11;
+tr14:
+#line 310 "http11/c/http11.rl"
+	{
+        parser->error = EHTTP505;
+    }
+	goto st6;
+tr11:
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
+    }
+	goto st6;
+st6:
+	if ( ++p == pe )
+		goto _test_eof6;
+case 6:
+#line 634 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 10: goto st0;
+		case 32: goto st7;
+	}
+	goto st6;
+tr15:
+#line 310 "http11/c/http11.rl"
+	{
+        parser->error = EHTTP505;
+    }
+	goto st7;
+st7:
+	if ( ++p == pe )
+		goto _test_eof7;
+case 7:
+#line 650 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
-		case 72: goto tr11;
+		case 32: goto tr15;
+		case 72: goto tr16;
 	}
-	goto tr9;
-tr11:
+	goto tr14;
+tr16:
 #line 273 "http11/c/http11.rl"
 	{
         /* We use fpc -1 here because otherwise this will catch the SP in the
@@ -607,90 +667,90 @@ tr11:
 	{
         parser->state->mark = calculate_offset(p, buf);
     }
-	goto st6;
-st6:
-	if ( ++p == pe )
-		goto _test_eof6;
-case 6:
-#line 616 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 10: goto tr0;
-		case 32: goto tr10;
-		case 84: goto st7;
-	}
-	goto tr9;
-st7:
-	if ( ++p == pe )
-		goto _test_eof7;
-case 7:
-	switch( (*p) ) {
-		case 10: goto tr0;
-		case 32: goto tr10;
-		case 84: goto st8;
-	}
-	goto tr9;
+	goto st8;
 st8:
 	if ( ++p == pe )
 		goto _test_eof8;
 case 8:
+#line 676 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
-		case 80: goto st9;
+		case 32: goto tr15;
+		case 84: goto st9;
 	}
-	goto tr9;
+	goto tr14;
 st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
-		case 47: goto st10;
+		case 32: goto tr15;
+		case 84: goto st10;
 	}
-	goto tr9;
+	goto tr14;
 st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
-		case 49: goto st11;
+		case 32: goto tr15;
+		case 80: goto st11;
 	}
-	goto tr9;
+	goto tr14;
 st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
-		case 46: goto st12;
+		case 32: goto tr15;
+		case 47: goto st12;
 	}
-	goto tr9;
+	goto tr14;
 st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
 	switch( (*p) ) {
 		case 10: goto tr0;
-		case 32: goto tr10;
+		case 32: goto tr15;
+		case 49: goto st13;
 	}
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st13;
-	goto tr9;
+	goto tr14;
 st13:
 	if ( ++p == pe )
 		goto _test_eof13;
 case 13:
 	switch( (*p) ) {
-		case 10: goto tr19;
-		case 13: goto tr20;
-		case 32: goto tr10;
+		case 10: goto tr0;
+		case 32: goto tr15;
+		case 46: goto st14;
 	}
-	goto tr9;
-tr19:
+	goto tr14;
+st14:
+	if ( ++p == pe )
+		goto _test_eof14;
+case 14:
+	switch( (*p) ) {
+		case 10: goto tr0;
+		case 32: goto tr15;
+	}
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st15;
+	goto tr14;
+st15:
+	if ( ++p == pe )
+		goto _test_eof15;
+case 15:
+	switch( (*p) ) {
+		case 10: goto tr24;
+		case 13: goto tr25;
+		case 32: goto tr15;
+	}
+	goto tr14;
+tr24:
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -702,8 +762,8 @@ tr19:
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
     }
-	goto st14;
-tr60:
+	goto st16;
+tr65:
 #line 296 "http11/c/http11.rl"
 	{
         handle_status_code_callback(parser, p, buf, parser->status_code);
@@ -711,8 +771,8 @@ tr60:
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
     }
-	goto st14;
-tr64:
+	goto st16;
+tr69:
 #line 250 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
@@ -723,190 +783,148 @@ tr64:
 
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st14;
-tr67:
-#line 289 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->reason_phrase);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st14;
-st14:
-	if ( ++p == pe )
-		goto _test_eof14;
-case 14:
-#line 742 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 10: goto tr21;
-		case 13: goto st15;
-		case 33: goto tr23;
-		case 124: goto tr23;
-		case 126: goto tr23;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr23;
-		} else if ( (*p) >= 35 )
-			goto tr23;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr23;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr23;
-		} else
-			goto tr23;
-	} else
-		goto tr23;
-	goto st0;
-tr21:
-#line 314 "http11/c/http11.rl"
-	{
-        {p++;  parser->state->cs = 43; goto _out;}
-    }
-	goto st43;
-tr40:
-#line 303 "http11/c/http11.rl"
-	{
-        handle_header_callback(parser, buf);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-#line 314 "http11/c/http11.rl"
-	{
-        {p++;  parser->state->cs = 43; goto _out;}
-    }
-	goto st43;
-st43:
-	if ( ++p == pe )
-		goto _test_eof43;
-case 43:
-#line 791 "http11/c/http11.c"
-	goto st0;
-tr41:
-#line 303 "http11/c/http11.rl"
-	{
-        handle_header_callback(parser, buf);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st15;
-st15:
-	if ( ++p == pe )
-		goto _test_eof15;
-case 15:
-#line 806 "http11/c/http11.c"
-	if ( (*p) == 10 )
-		goto tr21;
-	goto st0;
-tr23:
-#line 250 "http11/c/http11.rl"
-	{
-        parser->state->mark = calculate_offset(p, buf);
     }
 	goto st16;
-tr42:
-#line 303 "http11/c/http11.rl"
+tr72:
+#line 289 "http11/c/http11.rl"
 	{
-        handle_header_callback(parser, buf);
+        handle_element_callback(parser, p, buf, parser->reason_phrase);
 
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
-    }
-#line 250 "http11/c/http11.rl"
-	{
-        parser->state->mark = calculate_offset(p, buf);
     }
 	goto st16;
 st16:
 	if ( ++p == pe )
 		goto _test_eof16;
 case 16:
-#line 833 "http11/c/http11.c"
+#line 802 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 33: goto st16;
-		case 58: goto tr25;
-		case 124: goto st16;
-		case 126: goto st16;
+		case 10: goto tr26;
+		case 13: goto st17;
+		case 33: goto tr28;
+		case 124: goto tr28;
+		case 126: goto tr28;
 	}
 	if ( (*p) < 45 ) {
 		if ( (*p) > 39 ) {
 			if ( 42 <= (*p) && (*p) <= 43 )
-				goto st16;
+				goto tr28;
 		} else if ( (*p) >= 35 )
-			goto st16;
+			goto tr28;
 	} else if ( (*p) > 46 ) {
 		if ( (*p) < 65 ) {
 			if ( 48 <= (*p) && (*p) <= 57 )
-				goto st16;
+				goto tr28;
 		} else if ( (*p) > 90 ) {
 			if ( 94 <= (*p) && (*p) <= 122 )
-				goto st16;
+				goto tr28;
 		} else
-			goto st16;
+			goto tr28;
 	} else
-		goto st16;
+		goto tr28;
 	goto st0;
-tr25:
-#line 254 "http11/c/http11.rl"
+tr26:
+#line 314 "http11/c/http11.rl"
 	{
-        parser->state->header_name_end = calculate_offset(p, buf) - parser->state->mark;
+        {p++;  parser->state->cs = 45; goto _out;}
     }
-	goto st17;
-tr27:
-#line 258 "http11/c/http11.rl"
+	goto st45;
+tr45:
+#line 303 "http11/c/http11.rl"
 	{
-        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
+        handle_header_callback(parser, buf);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
     }
-#line 262 "http11/c/http11.rl"
+#line 314 "http11/c/http11.rl"
 	{
-        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
+        {p++;  parser->state->cs = 45; goto _out;}
+    }
+	goto st45;
+st45:
+	if ( ++p == pe )
+		goto _test_eof45;
+case 45:
+#line 851 "http11/c/http11.c"
+	goto st0;
+tr46:
+#line 303 "http11/c/http11.rl"
+	{
+        handle_header_callback(parser, buf);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
     }
 	goto st17;
 st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 878 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 9: goto tr27;
-		case 10: goto tr28;
-		case 13: goto tr29;
-		case 32: goto tr27;
-		case 127: goto st0;
-	}
-	if ( 0 <= (*p) && (*p) <= 31 )
-		goto st0;
-	goto tr26;
-tr26:
-#line 258 "http11/c/http11.rl"
+#line 866 "http11/c/http11.c"
+	if ( (*p) == 10 )
+		goto tr26;
+	goto st0;
+tr28:
+#line 250 "http11/c/http11.rl"
 	{
-        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
+        parser->state->mark = calculate_offset(p, buf);
+    }
+	goto st18;
+tr47:
+#line 303 "http11/c/http11.rl"
+	{
+        handle_header_callback(parser, buf);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
     }
 	goto st18;
 st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 899 "http11/c/http11.c"
+#line 893 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 9: goto tr31;
-		case 10: goto tr32;
-		case 13: goto tr33;
-		case 32: goto tr31;
-		case 127: goto st0;
+		case 33: goto st18;
+		case 58: goto tr30;
+		case 124: goto st18;
+		case 126: goto st18;
 	}
-	if ( 0 <= (*p) && (*p) <= 31 )
-		goto st0;
-	goto st18;
-tr31:
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto st18;
+		} else if ( (*p) >= 35 )
+			goto st18;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto st18;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto st18;
+		} else
+			goto st18;
+	} else
+		goto st18;
+	goto st0;
+tr30:
+#line 254 "http11/c/http11.rl"
+	{
+        parser->state->header_name_end = calculate_offset(p, buf) - parser->state->mark;
+    }
+	goto st19;
+tr32:
+#line 258 "http11/c/http11.rl"
+	{
+        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
+    }
 #line 262 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
@@ -916,32 +934,39 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 920 "http11/c/http11.c"
+#line 938 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 9: goto st19;
-		case 10: goto st22;
-		case 13: goto st23;
-		case 32: goto st19;
+		case 9: goto tr32;
+		case 10: goto tr33;
+		case 13: goto tr34;
+		case 32: goto tr32;
 		case 127: goto st0;
 	}
 	if ( 0 <= (*p) && (*p) <= 31 )
 		goto st0;
+	goto tr31;
+tr31:
+#line 258 "http11/c/http11.rl"
+	{
+        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
+    }
 	goto st20;
 st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
+#line 959 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 9: goto tr38;
-		case 10: goto tr32;
-		case 13: goto tr33;
-		case 32: goto tr38;
+		case 9: goto tr36;
+		case 10: goto tr37;
+		case 13: goto tr38;
+		case 32: goto tr36;
 		case 127: goto st0;
 	}
 	if ( 0 <= (*p) && (*p) <= 31 )
 		goto st0;
-	goto st18;
-tr38:
+	goto st20;
+tr36:
 #line 262 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
@@ -951,120 +976,86 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 955 "http11/c/http11.c"
+#line 980 "http11/c/http11.c"
 	switch( (*p) ) {
 		case 9: goto st21;
-		case 10: goto st22;
-		case 13: goto st23;
+		case 10: goto st24;
+		case 13: goto st25;
 		case 32: goto st21;
+		case 127: goto st0;
 	}
-	goto st0;
+	if ( 0 <= (*p) && (*p) <= 31 )
+		goto st0;
+	goto st22;
 st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
 	switch( (*p) ) {
-		case 10: goto tr40;
-		case 13: goto tr41;
-		case 33: goto tr42;
-		case 124: goto tr42;
-		case 126: goto tr42;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr42;
-		} else if ( (*p) >= 35 )
-			goto tr42;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr42;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr42;
-		} else
-			goto tr42;
-	} else
-		goto tr42;
-	goto st0;
-st23:
-	if ( ++p == pe )
-		goto _test_eof23;
-case 23:
-	if ( (*p) == 10 )
-		goto st22;
-	goto st0;
-tr28:
-#line 258 "http11/c/http11.rl"
-	{
-        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
-    }
-#line 262 "http11/c/http11.rl"
-	{
-        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
-    }
-	goto st24;
-tr32:
-#line 262 "http11/c/http11.rl"
-	{
-        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
-    }
-	goto st24;
-st24:
-	if ( ++p == pe )
-		goto _test_eof24;
-case 24:
-#line 1019 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 9: goto st25;
-		case 10: goto tr40;
-		case 13: goto tr41;
-		case 32: goto st25;
-		case 33: goto tr42;
-		case 124: goto tr42;
-		case 126: goto tr42;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr42;
-		} else if ( (*p) >= 35 )
-			goto tr42;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr42;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr42;
-		} else
-			goto tr42;
-	} else
-		goto tr42;
-	goto st0;
-tr44:
-#line 262 "http11/c/http11.rl"
-	{
-        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
-    }
-	goto st25;
-st25:
-	if ( ++p == pe )
-		goto _test_eof25;
-case 25:
-#line 1057 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 9: goto tr44;
-		case 10: goto tr32;
-		case 13: goto tr33;
-		case 32: goto tr44;
+		case 9: goto tr43;
+		case 10: goto tr37;
+		case 13: goto tr38;
+		case 32: goto tr43;
 		case 127: goto st0;
 	}
 	if ( 0 <= (*p) && (*p) <= 31 )
 		goto st0;
-	goto st18;
-tr29:
+	goto st20;
+tr43:
+#line 262 "http11/c/http11.rl"
+	{
+        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
+    }
+	goto st23;
+st23:
+	if ( ++p == pe )
+		goto _test_eof23;
+case 23:
+#line 1015 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 9: goto st23;
+		case 10: goto st24;
+		case 13: goto st25;
+		case 32: goto st23;
+	}
+	goto st0;
+st24:
+	if ( ++p == pe )
+		goto _test_eof24;
+case 24:
+	switch( (*p) ) {
+		case 10: goto tr45;
+		case 13: goto tr46;
+		case 33: goto tr47;
+		case 124: goto tr47;
+		case 126: goto tr47;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr47;
+		} else if ( (*p) >= 35 )
+			goto tr47;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr47;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr47;
+		} else
+			goto tr47;
+	} else
+		goto tr47;
+	goto st0;
+st25:
+	if ( ++p == pe )
+		goto _test_eof25;
+case 25:
+	if ( (*p) == 10 )
+		goto st24;
+	goto st0;
+tr33:
 #line 258 "http11/c/http11.rl"
 	{
         parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
@@ -1074,7 +1065,7 @@ tr29:
         parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
     }
 	goto st26;
-tr33:
+tr37:
 #line 262 "http11/c/http11.rl"
 	{
         parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
@@ -1084,182 +1075,80 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 1088 "http11/c/http11.c"
-	if ( (*p) == 10 )
-		goto st24;
+#line 1079 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 9: goto st27;
+		case 10: goto tr45;
+		case 13: goto tr46;
+		case 32: goto st27;
+		case 33: goto tr47;
+		case 124: goto tr47;
+		case 126: goto tr47;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr47;
+		} else if ( (*p) >= 35 )
+			goto tr47;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr47;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr47;
+		} else
+			goto tr47;
+	} else
+		goto tr47;
 	goto st0;
-tr20:
-#line 310 "http11/c/http11.rl"
+tr49:
+#line 262 "http11/c/http11.rl"
 	{
-        parser->error = EHTTP505;
-    }
-#line 282 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->http_version);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
+        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
     }
 	goto st27;
 st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 1109 "http11/c/http11.c"
+#line 1117 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 10: goto st14;
-		case 32: goto st5;
+		case 9: goto tr49;
+		case 10: goto tr37;
+		case 13: goto tr38;
+		case 32: goto tr49;
+		case 127: goto st0;
 	}
-	goto st4;
-tr2:
-#line 250 "http11/c/http11.rl"
+	if ( 0 <= (*p) && (*p) <= 31 )
+		goto st0;
+	goto st20;
+tr34:
+#line 258 "http11/c/http11.rl"
 	{
-        parser->state->mark = calculate_offset(p, buf);
+        parser->state->header_value_start = calculate_offset(p, buf) - parser->state->mark;
+    }
+#line 262 "http11/c/http11.rl"
+	{
+        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
+    }
+	goto st28;
+tr38:
+#line 262 "http11/c/http11.rl"
+	{
+        parser->state->header_value_end = calculate_offset(p, buf) - parser->state->mark;
     }
 	goto st28;
 st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 1125 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 32: goto tr47;
-		case 33: goto tr48;
-		case 84: goto st29;
-		case 124: goto tr48;
-		case 126: goto tr48;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr48;
-		} else if ( (*p) >= 35 )
-			goto tr48;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr48;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr48;
-		} else
-			goto tr48;
-	} else
-		goto tr48;
-	goto tr0;
-st29:
-	if ( ++p == pe )
-		goto _test_eof29;
-case 29:
-	switch( (*p) ) {
-		case 32: goto tr47;
-		case 33: goto tr48;
-		case 84: goto st30;
-		case 124: goto tr48;
-		case 126: goto tr48;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr48;
-		} else if ( (*p) >= 35 )
-			goto tr48;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr48;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr48;
-		} else
-			goto tr48;
-	} else
-		goto tr48;
-	goto tr0;
-st30:
-	if ( ++p == pe )
-		goto _test_eof30;
-case 30:
-	switch( (*p) ) {
-		case 32: goto tr47;
-		case 33: goto tr48;
-		case 80: goto st31;
-		case 124: goto tr48;
-		case 126: goto tr48;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr48;
-		} else if ( (*p) >= 35 )
-			goto tr48;
-	} else if ( (*p) > 46 ) {
-		if ( (*p) < 65 ) {
-			if ( 48 <= (*p) && (*p) <= 57 )
-				goto tr48;
-		} else if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr48;
-		} else
-			goto tr48;
-	} else
-		goto tr48;
-	goto tr0;
-st31:
-	if ( ++p == pe )
-		goto _test_eof31;
-case 31:
-	switch( (*p) ) {
-		case 32: goto tr47;
-		case 33: goto tr48;
-		case 47: goto st32;
-		case 124: goto tr48;
-		case 126: goto tr48;
-	}
-	if ( (*p) < 45 ) {
-		if ( (*p) > 39 ) {
-			if ( 42 <= (*p) && (*p) <= 43 )
-				goto tr48;
-		} else if ( (*p) >= 35 )
-			goto tr48;
-	} else if ( (*p) > 57 ) {
-		if ( (*p) > 90 ) {
-			if ( 94 <= (*p) && (*p) <= 122 )
-				goto tr48;
-		} else if ( (*p) >= 65 )
-			goto tr48;
-	} else
-		goto tr48;
-	goto tr0;
-st32:
-	if ( ++p == pe )
-		goto _test_eof32;
-case 32:
-	if ( (*p) == 49 )
-		goto st33;
-	goto tr0;
-st33:
-	if ( ++p == pe )
-		goto _test_eof33;
-case 33:
-	if ( (*p) == 46 )
-		goto st34;
-	goto tr0;
-st34:
-	if ( ++p == pe )
-		goto _test_eof34;
-case 34:
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st35;
-	goto tr0;
-st35:
-	if ( ++p == pe )
-		goto _test_eof35;
-case 35:
-	if ( (*p) == 32 )
-		goto tr56;
-	goto tr0;
-tr56:
+#line 1148 "http11/c/http11.c"
+	if ( (*p) == 10 )
+		goto st26;
+	goto st0;
+tr25:
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -1271,86 +1160,218 @@ tr56:
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
     }
-	goto st36;
+	goto st29;
+st29:
+	if ( ++p == pe )
+		goto _test_eof29;
+case 29:
+#line 1169 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 10: goto st16;
+		case 32: goto st7;
+	}
+	goto st6;
+tr4:
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
+    }
+	goto st30;
+st30:
+	if ( ++p == pe )
+		goto _test_eof30;
+case 30:
+#line 1185 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 32: goto tr52;
+		case 33: goto tr53;
+		case 84: goto st31;
+		case 124: goto tr53;
+		case 126: goto tr53;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr53;
+		} else if ( (*p) >= 35 )
+			goto tr53;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr53;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr53;
+		} else
+			goto tr53;
+	} else
+		goto tr53;
+	goto tr0;
+st31:
+	if ( ++p == pe )
+		goto _test_eof31;
+case 31:
+	switch( (*p) ) {
+		case 32: goto tr52;
+		case 33: goto tr53;
+		case 84: goto st32;
+		case 124: goto tr53;
+		case 126: goto tr53;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr53;
+		} else if ( (*p) >= 35 )
+			goto tr53;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr53;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr53;
+		} else
+			goto tr53;
+	} else
+		goto tr53;
+	goto tr0;
+st32:
+	if ( ++p == pe )
+		goto _test_eof32;
+case 32:
+	switch( (*p) ) {
+		case 32: goto tr52;
+		case 33: goto tr53;
+		case 80: goto st33;
+		case 124: goto tr53;
+		case 126: goto tr53;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr53;
+		} else if ( (*p) >= 35 )
+			goto tr53;
+	} else if ( (*p) > 46 ) {
+		if ( (*p) < 65 ) {
+			if ( 48 <= (*p) && (*p) <= 57 )
+				goto tr53;
+		} else if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr53;
+		} else
+			goto tr53;
+	} else
+		goto tr53;
+	goto tr0;
+st33:
+	if ( ++p == pe )
+		goto _test_eof33;
+case 33:
+	switch( (*p) ) {
+		case 32: goto tr52;
+		case 33: goto tr53;
+		case 47: goto st34;
+		case 124: goto tr53;
+		case 126: goto tr53;
+	}
+	if ( (*p) < 45 ) {
+		if ( (*p) > 39 ) {
+			if ( 42 <= (*p) && (*p) <= 43 )
+				goto tr53;
+		} else if ( (*p) >= 35 )
+			goto tr53;
+	} else if ( (*p) > 57 ) {
+		if ( (*p) > 90 ) {
+			if ( 94 <= (*p) && (*p) <= 122 )
+				goto tr53;
+		} else if ( (*p) >= 65 )
+			goto tr53;
+	} else
+		goto tr53;
+	goto tr0;
+st34:
+	if ( ++p == pe )
+		goto _test_eof34;
+case 34:
+	if ( (*p) == 49 )
+		goto st35;
+	goto tr0;
+st35:
+	if ( ++p == pe )
+		goto _test_eof35;
+case 35:
+	if ( (*p) == 46 )
+		goto st36;
+	goto tr0;
 st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 1280 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr57;
-	goto st0;
-tr57:
-#line 250 "http11/c/http11.rl"
-	{
-        parser->state->mark = calculate_offset(p, buf);
-    }
-	goto st37;
+		goto st37;
+	goto tr0;
 st37:
 	if ( ++p == pe )
 		goto _test_eof37;
 case 37:
-#line 1294 "http11/c/http11.c"
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st38;
-	goto st0;
+	if ( (*p) == 32 )
+		goto tr61;
+	goto tr0;
+tr61:
+#line 310 "http11/c/http11.rl"
+	{
+        parser->error = EHTTP505;
+    }
+#line 282 "http11/c/http11.rl"
+	{
+        handle_element_callback(parser, p, buf, parser->http_version);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
+	goto st38;
 st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
+#line 1340 "http11/c/http11.c"
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto st39;
+		goto tr62;
 	goto st0;
+tr62:
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
+    }
+	goto st39;
 st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-	switch( (*p) ) {
-		case 10: goto tr60;
-		case 13: goto tr61;
-		case 32: goto tr62;
-	}
+#line 1354 "http11/c/http11.c"
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st40;
 	goto st0;
-tr61:
-#line 296 "http11/c/http11.rl"
-	{
-        handle_status_code_callback(parser, p, buf, parser->status_code);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st40;
-tr65:
-#line 250 "http11/c/http11.rl"
-	{
-        parser->state->mark = calculate_offset(p, buf);
-    }
-#line 289 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->reason_phrase);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st40;
-tr68:
-#line 289 "http11/c/http11.rl"
-	{
-        handle_element_callback(parser, p, buf, parser->reason_phrase);
-
-        if (parser->error)
-            { parser->state->cs = (http_parser_error); goto _again;}
-    }
-	goto st40;
 st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 1350 "http11/c/http11.c"
-	if ( (*p) == 10 )
-		goto st14;
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto st41;
 	goto st0;
-tr62:
+st41:
+	if ( ++p == pe )
+		goto _test_eof41;
+case 41:
+	switch( (*p) ) {
+		case 10: goto tr65;
+		case 13: goto tr66;
+		case 32: goto tr67;
+	}
+	goto st0;
+tr66:
 #line 296 "http11/c/http11.rl"
 	{
         handle_status_code_callback(parser, p, buf, parser->status_code);
@@ -1358,37 +1379,54 @@ tr62:
         if (parser->error)
             { parser->state->cs = (http_parser_error); goto _again;}
     }
-	goto st41;
-st41:
-	if ( ++p == pe )
-		goto _test_eof41;
-case 41:
-#line 1367 "http11/c/http11.c"
-	switch( (*p) ) {
-		case 10: goto tr64;
-		case 13: goto tr65;
-		case 127: goto st0;
-	}
-	if ( (*p) > 8 ) {
-		if ( 11 <= (*p) && (*p) <= 31 )
-			goto st0;
-	} else if ( (*p) >= 0 )
-		goto st0;
-	goto tr63;
-tr63:
+	goto st42;
+tr70:
 #line 250 "http11/c/http11.rl"
 	{
         parser->state->mark = calculate_offset(p, buf);
+    }
+#line 289 "http11/c/http11.rl"
+	{
+        handle_element_callback(parser, p, buf, parser->reason_phrase);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
+	goto st42;
+tr73:
+#line 289 "http11/c/http11.rl"
+	{
+        handle_element_callback(parser, p, buf, parser->reason_phrase);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
     }
 	goto st42;
 st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 1389 "http11/c/http11.c"
+#line 1410 "http11/c/http11.c"
+	if ( (*p) == 10 )
+		goto st16;
+	goto st0;
+tr67:
+#line 296 "http11/c/http11.rl"
+	{
+        handle_status_code_callback(parser, p, buf, parser->status_code);
+
+        if (parser->error)
+            { parser->state->cs = (http_parser_error); goto _again;}
+    }
+	goto st43;
+st43:
+	if ( ++p == pe )
+		goto _test_eof43;
+case 43:
+#line 1427 "http11/c/http11.c"
 	switch( (*p) ) {
-		case 10: goto tr67;
-		case 13: goto tr68;
+		case 10: goto tr69;
+		case 13: goto tr70;
 		case 127: goto st0;
 	}
 	if ( (*p) > 8 ) {
@@ -1396,7 +1434,29 @@ case 42:
 			goto st0;
 	} else if ( (*p) >= 0 )
 		goto st0;
-	goto st42;
+	goto tr68;
+tr68:
+#line 250 "http11/c/http11.rl"
+	{
+        parser->state->mark = calculate_offset(p, buf);
+    }
+	goto st44;
+st44:
+	if ( ++p == pe )
+		goto _test_eof44;
+case 44:
+#line 1449 "http11/c/http11.c"
+	switch( (*p) ) {
+		case 10: goto tr72;
+		case 13: goto tr73;
+		case 127: goto st0;
+	}
+	if ( (*p) > 8 ) {
+		if ( 11 <= (*p) && (*p) <= 31 )
+			goto st0;
+	} else if ( (*p) >= 0 )
+		goto st0;
+	goto st44;
 	}
 	_test_eof1:  parser->state->cs = 1; goto _test_eof; 
 	_test_eof2:  parser->state->cs = 2; goto _test_eof; 
@@ -1412,9 +1472,9 @@ case 42:
 	_test_eof12:  parser->state->cs = 12; goto _test_eof; 
 	_test_eof13:  parser->state->cs = 13; goto _test_eof; 
 	_test_eof14:  parser->state->cs = 14; goto _test_eof; 
-	_test_eof43:  parser->state->cs = 43; goto _test_eof; 
 	_test_eof15:  parser->state->cs = 15; goto _test_eof; 
 	_test_eof16:  parser->state->cs = 16; goto _test_eof; 
+	_test_eof45:  parser->state->cs = 45; goto _test_eof; 
 	_test_eof17:  parser->state->cs = 17; goto _test_eof; 
 	_test_eof18:  parser->state->cs = 18; goto _test_eof; 
 	_test_eof19:  parser->state->cs = 19; goto _test_eof; 
@@ -1441,6 +1501,8 @@ case 42:
 	_test_eof40:  parser->state->cs = 40; goto _test_eof; 
 	_test_eof41:  parser->state->cs = 41; goto _test_eof; 
 	_test_eof42:  parser->state->cs = 42; goto _test_eof; 
+	_test_eof43:  parser->state->cs = 43; goto _test_eof; 
+	_test_eof44:  parser->state->cs = 44; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
@@ -1449,8 +1511,8 @@ case 42:
 	case 2: 
 	case 3: 
 	case 4: 
-	case 13: 
-	case 14: 
+	case 5: 
+	case 6: 
 	case 15: 
 	case 16: 
 	case 17: 
@@ -1464,14 +1526,16 @@ case 42:
 	case 25: 
 	case 26: 
 	case 27: 
-	case 35: 
-	case 36: 
+	case 28: 
+	case 29: 
 	case 37: 
 	case 38: 
 	case 39: 
 	case 40: 
 	case 41: 
 	case 42: 
+	case 43: 
+	case 44: 
 #line 318 "http11/c/http11.rl"
 	{
         parser->error = EEOF;
@@ -1479,21 +1543,21 @@ case 42:
     }
 	break;
 	case 1: 
-	case 5: 
-	case 6: 
 	case 7: 
 	case 8: 
 	case 9: 
 	case 10: 
 	case 11: 
 	case 12: 
-	case 28: 
-	case 29: 
+	case 13: 
+	case 14: 
 	case 30: 
 	case 31: 
 	case 32: 
 	case 33: 
 	case 34: 
+	case 35: 
+	case 36: 
 #line 310 "http11/c/http11.rl"
 	{
         parser->error = EHTTP505;
@@ -1504,7 +1568,7 @@ case 42:
         { parser->state->cs = (http_parser_error); goto _again;}
     }
 	break;
-#line 1508 "http11/c/http11.c"
+#line 1572 "http11/c/http11.c"
 	}
 	}
 
