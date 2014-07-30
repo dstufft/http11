@@ -108,7 +108,7 @@ static void handle_status_code_callback(HTTPParser *parser,
         errno = 0;
         code = strtoul(s, NULL, 10);
         if (errno) {
-            parser->error = EHTTP400;
+            parser->error = EINVALIDMSG;
             return;
         }
 
@@ -308,7 +308,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     }
 
     action invalid_http_version {
-        parser->error = EHTTP505;
+        parser->error = EBADVERSION;
     }
 
     action done {
@@ -474,7 +474,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
         parser->finished = true;
 
         if (parser->state->cs == http_parser_error && !parser->error) {
-            parser->error = EHTTP400;
+            parser->error = EINVALIDMSG;
         }
 
         /* We've finished parsing the request, if we have a tmp buffer

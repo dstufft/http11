@@ -18,10 +18,10 @@
 #define _http11_h
 
 
-#define EEOF        -2   /* An EOF was received prior to the message being
-                            finished. */
-#define EHTTP400    -400 /* The message was invalid an unable to be parsed */
-#define EHTTP505    -505 /* The HTTP version was invalid */
+#define EEOF        -2 /* An EOF was received prior to the message being
+                          finished. */
+#define EINVALIDMSG -3 /* The message was invalid an unable to be parsed */
+#define EBADVERSION -4 /* The HTTP version was invalid */
 
 
 typedef enum {false, true} bool;

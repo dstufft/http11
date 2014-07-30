@@ -174,7 +174,7 @@ def test_http_version_error(msg, parser, data):
     http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert parser.finished
-    assert parser.error == http11.lib.EHTTP505
+    assert parser.error == http11.lib.EBADVERSION
 
 
 def test_eof_handling(parser):
@@ -210,4 +210,4 @@ def test_leading_crlf(parser, data):
     http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert parser.finished
-    assert parser.error == http11.lib.EHTTP400
+    assert parser.error == http11.lib.EINVALIDMSG
