@@ -315,6 +315,11 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
         fbreak;
     }
 
+    action eof_received {
+        parser->error = EEOF;
+        fgoto *http_parser_error;
+    }
+
     CRLF = ( "\r\n" | "\n" ) ;
     SP = " " ;
     VCHAR = graph ;
@@ -346,7 +351,7 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
 
     http_message = start_line header_field* CRLF ;
 
-main := http_message @done;
+main := http_message @done @eof(eof_received);
 
 }%%
 
@@ -420,43 +425,47 @@ size_t HTTPParser_execute(HTTPParser *parser,
     const char *pe;
     const char *eof = NULL;
 
-    /* If we have anything stored in our temp buffer, then we want to use that
-       buffer combined with the new buffer instead of just using the new
-       buffer. */
-    if (parser->state->tmp != NULL) {
-        parser->state->tmplen += (length - offset);
+    if (buf == NULL) {
+        p = pe = eof;
+    } else {
+        /* If we have anything stored in our temp buffer, then we want to use
+           that buffer combined with the new buffer instead of just using the
+           new buffer. */
+        if (parser->state->tmp != NULL) {
+            parser->state->tmplen += (length - offset);
 
-        /* Resize our temp buffer to also hold the additional data */
-        rtmp = realloc(parser->state->tmp, parser->state->tmplen);
-        if (rtmp == NULL) {
-            /* TODO: Do we really need to finish the parser if we can't
-                     realloc? Another call with the same data might succeed I
-                     Think? */
-            parser->finished = true;
-            parser->error = ENOMEM;
-            return 0;
+            /* Resize our temp buffer to also hold the additional data */
+            rtmp = realloc(parser->state->tmp, parser->state->tmplen);
+            if (rtmp == NULL) {
+                /* TODO: Do we really need to finish the parser if we can't
+                         realloc? Another call with the same data might succeed
+                         I think? */
+                parser->finished = true;
+                parser->error = ENOMEM;
+                return 0;
+            }
+            parser->state->tmp = rtmp;
+
+            /* Copy the data from the new buffer into our temporary buffer. */
+            memcpy(
+                parser->state->tmp + (parser->state->tmplen - (length - offset)),
+                buf + offset,
+                length - offset
+            );
+
+            /* Point the buf to our new buffer now, and point the mark to the
+               beginning. */
+            buf = parser->state->tmp;
+            parser->state->mark = 0;
+
+            /* Adjust our length and offset to match the new buffer. */
+            offset = parser->state->tmplen - (length - offset);
+            length = parser->state->tmplen;
         }
-        parser->state->tmp = rtmp;
 
-        /* Copy the data from the new buffer into our temporary buffer. */
-        memcpy(
-            parser->state->tmp + (parser->state->tmplen - (length - offset)),
-            buf + offset,
-            length - offset
-        );
-
-        /* point the buf to our new buffer now, and point the mark to the
-           beginning. */
-        buf = parser->state->tmp;
-        parser->state->mark = 0;
-
-        /* Adjust our length and offset to match the new buffer. */
-        offset = parser->state->tmplen - (length - offset);
-        length = parser->state->tmplen;
+        p = buf + offset;
+        pe = buf + length;
     }
-
-    p = buf + offset;
-    pe = buf + length;
 
     %% access parser->state->;
     %% write exec;
