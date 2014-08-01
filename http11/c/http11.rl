@@ -19,228 +19,108 @@
 
 #include "http11.h"
 
-#define STATUS_CODE_LEN 3
+
+#define MARK_START(fpc, buf, mark) (fpc - buf - mark)
+#define MARK_LEN(fpc, buf, item, mark) (fpc - buf - item - mark)
 
 
 struct _HTTPParserState {
   int cs;
   int mark;
-  int header_name_end;
-  int header_value_start;
-  int header_value_end;
+
+  int method;
+  int method_len;
+  int uri;
+  int uri_len;
+  int http_version;
+  int http_version_len;
+  int status_code;
+  int status_code_len;
+  int reason_phrase;
+  int reason_phrase_len;
+  int field_name;
+  int field_name_len;
+  int field_value;
+  int field_value_len;
 
   char *tmp;
   size_t tmplen;
 };
 
 
-static int calculate_offset(const char *fpc,
-                            const char *buf)
+static const int find_obs_fold(const char *buf, const int len)
 {
-    return fpc - buf;
-}
+    int i = 0;
 
-
-static int calculate_length(const char *fpc,
-                            const char *buf,
-                            const int offset)
-{
-    return fpc - buf - offset;
-}
-
-
-static const char *create_pointer(const char *buf,
-                                  const int offset)
-{
-    return buf + offset;
-}
-
-
-static char * strnstr_(const char *s, const char *find, size_t slen)
-{
-    char c, sc;
-    size_t len;
-
-    if ((c = *find++) != '\0') {
-        len = strlen(find);
-        do {
-            do {
-                if (slen-- < 1 || (sc = *s++) == '\0')
-                    return (NULL);
-            } while (sc != c);
-            if (len > slen)
-                return (NULL);
-        } while (strncmp(s, find, len) != 0);
-        s--;
-    }
-    return ((char *)s);
-}
-
-
-static void handle_element_callback(HTTPParser *parser,
-                                    const char *fpc,
-                                    const char *buf,
-                                    int (*callback)(const char *, size_t))
-{
-    if (callback != NULL) {
-        parser->error = callback(
-            create_pointer(buf, parser->state->mark),
-            calculate_length(fpc, buf, parser->state->mark)
-        );
+    for (; i < (len - 2); i++) {
+        if (strncmp(buf + i, "\r\n ", 3) == 0
+                || strncmp(buf + i, "\r\n\t", 3) == 0
+                || strncmp(buf + i, "\n ", 2) == 0
+                || strncmp(buf + i, "\n\t", 2) == 0) {
+            return i;
+        }
     }
 
-    parser->state->mark = -1;
+    return -1;
 }
 
 
-static void handle_status_code_callback(HTTPParser *parser,
-                                        const char *fpc,
-                                        const char *buf,
-                                        int (*callback)(const unsigned short))
+static void collapse_obs_fold(char *buf, int *len)
 {
-    char s[STATUS_CODE_LEN + 1];
+    int find;
+    int rlen;
+    int rkeep;
+    int i;
+
+    find = find_obs_fold(buf, *len);
+    while(find >= 0) {
+        if (*(buf + find) == '\r') {
+            rlen = 3;
+        } else {
+            rlen = 2;
+        }
+
+        /* Find any additional whitespace we need to remove. */
+        for (i = find + rlen; i < *len; i++) {
+            if (*(buf + i) == ' ' || *(buf + i) == '\t') {
+                rlen++;
+            } else {
+                break;
+            }
+        }
+
+        if (find > 0) {
+            /* Replace the first character in our find with a single SP if this
+               isn't the first character in the value. */
+            *(buf + find) = ' ';
+
+            rkeep = 1;
+        } else {
+            rkeep = 0;
+        }
+
+        /* Copy the rest of the string onto the end of the buffer. */
+        memmove(buf + find + rkeep, buf + find + rlen, (*len) - find - rlen);
+
+        *len -= rlen - rkeep;
+
+        /* start our find one character past what we just replaced. */
+        find = find_obs_fold(buf + find + rkeep, (*len) - find);
+    }
+}
+
+
+static const unsigned short buf2status_code(const char *buf, const int len)
+{
+    char s[4];
     unsigned long int code;
 
-    if (callback != NULL) {
-        strncpy(s, create_pointer(buf, parser->state->mark), STATUS_CODE_LEN);
-        s[STATUS_CODE_LEN] = '\0';
+    strncpy(s, buf, 3);
+    s[3] = '\0';
 
-        errno = 0;
-        code = strtoul(s, NULL, 10);
-        if (errno) {
-            parser->error = EINVALIDMSG;
-            return;
-        }
+    code = strtoul(s, NULL, 10);
 
-        parser->error = callback((const unsigned short)code);
-    }
-
-    parser->state->mark = -1;
-}
-
-
-static void handle_header_callback(HTTPParser *parser, const char *buf)
-{
-    const char *name = create_pointer(buf, parser->state->mark);
-    const char *value = create_pointer(
-        buf,
-        parser->state->mark + parser->state->header_value_start
-    );
-    size_t namelen = parser->state->header_name_end;
-    size_t valuelen = parser->state->header_value_end - parser->state->header_value_start;
-
-    const char *found;
-    const char *found_sp;
-    const char *found_htab;
-    const char *src;
-    char *dest;
-    char *newvalue;
-    size_t left;
-    size_t newvaluelen = 0;
-    bool output = false;
-
-    if (parser->http_header != NULL) {
-        /* Determine if we have a \r\n inside of our header value, if we do
-           then we have an obs-fold and we need to collapse it down to a
-           single space, if we don't then we can do a zero copy callback. */
-        found_sp = strnstr_(value, "\r\n ", valuelen);
-        found_htab = strnstr_(value, "\r\n\t", valuelen);
-        if (found_sp != NULL && found_htab != NULL) {
-            found = found_sp < found_htab ? found_sp : found_htab;
-        } else if (found_sp != NULL && found_htab == NULL) {
-            found = found_sp;
-        } else if (found_sp == NULL && found_htab != NULL) {
-            found = found_htab;
-        } else {
-            found = NULL;
-        }
-
-        if (found != NULL) {
-            newvalue = malloc(valuelen);
-            src = value;
-            dest = newvalue;
-            left = valuelen;
-
-            if (newvalue == NULL) {
-                parser->error = ENOMEM;
-                return;
-            }
-
-            while (found != NULL && left > 0) {
-                if ((found - src) > 0) {
-                    if (output) {
-                        /* If we've already had output, then go ahead and add
-                           a space. */
-                        *dest = ' ';
-                        dest++;
-                        newvaluelen++;
-                    }
-
-                    /* Copy everything to the left of our "\r\n " */
-                    memcpy(dest, src, found - src);
-
-                    /* Record how much bigger our newvalue is now */
-                    newvaluelen += (found - src);
-
-                    /* Move our dest pointer to the end of the copied data */
-                    dest += (found - src);
-
-                    output = true;
-                }
-
-                /* Decrement how much of our value is left to search */
-                left -= ((found - src) + 3);
-
-                /* Move our src pointer to just past the "\r\n " */
-                src = found + 3;
-
-                /* Look for any blocks of whitespace past the obs-fold and omit
-                   them from our new value. */
-                while (src < value + valuelen) {
-                    if (strncmp(src, " ", 1) && strncmp(src, "\t", 1))
-                        break;
-                    src++;
-                    left--;
-                }
-
-                /* Look for another "\r\n " */
-                found_sp = strnstr_(src, "\r\n ", left);
-                found_htab = strnstr_(src, "\r\n\t", left);
-                if (found_sp != NULL && found_htab != NULL) {
-                    found = found_sp < found_htab ? found_sp : found_htab;
-                } else if (found_sp != NULL && found_htab == NULL) {
-                    found = found_sp;
-                } else if (found_sp == NULL && found_htab != NULL) {
-                    found = found_htab;
-                } else {
-                    found = NULL;
-                }
-            }
-
-            /* Copy anything left over in our value */
-            if (left > 0) {
-                if (output) {
-                    *dest = ' ';
-                    dest++;
-                    newvaluelen++;
-                }
-
-                memcpy(dest, src, left);
-                newvaluelen += left;
-            }
-
-            /* Call our callback finally with our new unfolded value. */
-            parser->error = parser->http_header(name, namelen, newvalue, newvaluelen);
-
-            /* Free the memory that we added earlier. */
-            free(newvalue);
-        } else {
-            /* Do the better, more optimized version */
-            parser->error = parser->http_header(name, namelen, value, valuelen);
-        }
-    }
-
-    parser->state->mark = -1;
+    return (const unsigned short)code;
 }
 
 
@@ -248,63 +128,212 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     machine http_parser;
 
     action mark {
-        parser->state->mark = calculate_offset(fpc, buf);
+        parser->state->mark = fpc - buf;
     }
 
-    action header_name_end {
-        parser->state->header_name_end = calculate_offset(fpc, buf) - parser->state->mark;
+    action method {
+        parser->state->method = MARK_START(fpc, buf, parser->state->mark);
     }
 
-    action header_value_start {
-        parser->state->header_value_start = calculate_offset(fpc, buf) - parser->state->mark;
+    action method_len {
+        parser->state->method_len = MARK_LEN(
+            fpc, buf,
+            parser->state->method,
+            parser->state->mark
+        );
     }
 
-    action header_value_end {
-        parser->state->header_value_end = calculate_offset(fpc, buf) - parser->state->mark;
+    action uri {
+        parser->state->uri = MARK_START(fpc, buf, parser->state->mark);
     }
 
-    action request_method {
-        handle_element_callback(parser, fpc, buf, parser->request_method);
-
-        if (parser->error)
-            fgoto *http_parser_error;
-    }
-
-    action request_uri {
-        /* We use fpc -1 here because otherwise this will catch the SP in the
-           buffer. */
-        handle_element_callback(parser, fpc - 1, buf, parser->request_uri);
-
-        if (parser->error)
-            fgoto *http_parser_error;
+    action uri_len {
+        parser->state->uri_len = MARK_LEN(
+            fpc, buf,
+            parser->state->uri,
+            parser->state->mark
+        );
     }
 
     action http_version {
-        handle_element_callback(parser, fpc, buf, parser->http_version);
-
-        if (parser->error)
-            fgoto *http_parser_error;
+        parser->state->http_version = MARK_START(fpc, buf, parser->state->mark);
     }
 
-    action reason_phrase {
-        handle_element_callback(parser, fpc, buf, parser->reason_phrase);
-
-        if (parser->error)
-            fgoto *http_parser_error;
+    action http_version_len {
+        parser->state->http_version_len = MARK_LEN(
+            fpc, buf,
+            parser->state->http_version,
+            parser->state->mark
+        );
     }
 
     action status_code {
-        handle_status_code_callback(parser, fpc, buf, parser->status_code);
-
-        if (parser->error)
-            fgoto *http_parser_error;
+        parser->state->status_code = MARK_START(fpc, buf, parser->state->mark);
     }
 
-    action write_header {
-        handle_header_callback(parser, buf);
+    action status_code_len {
+        parser->state->status_code_len = MARK_LEN(
+            fpc, buf,
+            parser->state->status_code,
+            parser->state->mark
+        );
+    }
 
-        if (parser->error)
-            fgoto *http_parser_error;
+    action reason_phrase {
+        parser->state->reason_phrase = MARK_START(fpc, buf, parser->state->mark);
+    }
+
+    action reason_phrase_len {
+        parser->state->reason_phrase_len = MARK_LEN(
+            fpc, buf,
+            parser->state->reason_phrase,
+            parser->state->mark
+        );
+    }
+
+    action field_name {
+        parser->state->field_name = MARK_START(fpc, buf, parser->state->mark);
+    }
+
+    action field_name_len {
+        parser->state->field_name_len = MARK_LEN(
+            fpc, buf,
+            parser->state->field_name,
+            parser->state->mark
+        );
+    }
+
+    action field_value {
+        parser->state->field_value = MARK_START(fpc, buf, parser->state->mark);
+    }
+
+    action field_value_len {
+        parser->state->field_value_len = MARK_LEN(
+            fpc, buf,
+            parser->state->field_value,
+            parser->state->mark
+        );
+    }
+
+    action request_line {
+        if (parser->request_method != NULL) {
+            parser->error = parser->request_method(
+                buf + parser->state->mark + parser->state->method,
+                parser->state->method_len
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        if (parser->request_uri != NULL) {
+            parser->error = parser->request_uri(
+                buf + parser->state->mark + parser->state->uri,
+                parser->state->uri_len
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        if (parser->http_version != NULL) {
+            parser->error = parser->http_version(
+                buf + parser->state->mark + parser->state->http_version,
+                parser->state->http_version_len
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        parser->state->mark = -1;
+    }
+
+    action status_line {
+        if (parser->http_version != NULL) {
+            parser->error = parser->http_version(
+                buf + parser->state->mark + parser->state->http_version,
+                parser->state->http_version_len
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        if (parser->status_code != NULL) {
+            parser->error = parser->status_code(
+                buf2status_code(
+                    buf + parser->state->mark + parser->state->status_code,
+                    parser->state->status_code_len
+                )
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        if (parser->reason_phrase != NULL
+                && parser->state->reason_phrase != -1
+                && parser->state->reason_phrase_len != -1) {
+            parser->error = parser->reason_phrase(
+                buf + parser->state->mark + parser->state->reason_phrase,
+                parser->state->reason_phrase_len
+            );
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        parser->state->mark = -1;
+    }
+
+    action header_field {
+        if (parser->http_header != NULL) {
+            if (find_obs_fold(
+                    buf + parser->state->mark + parser->state->field_value,
+                    parser->state->field_value_len) >= 0) {
+
+                field_value = malloc(parser->state->field_value_len);
+                if (field_value == NULL) {
+                    parser->error = ENOMEM;
+                    fgoto *http_parser_error;
+                }
+                memcpy(
+                    field_value,
+                    buf + parser->state->mark + parser->state->field_value,
+                    parser->state->field_value_len
+                );
+
+                field_value_len = parser->state->field_value_len;
+
+                collapse_obs_fold(field_value, &field_value_len);
+
+                parser->error = parser->http_header(
+                    buf + parser->state->mark + parser->state->field_name,
+                    parser->state->field_name_len,
+                    field_value,
+                    field_value_len
+                );
+
+                free(field_value);
+            } else {
+                parser->error = parser->http_header(
+                    buf + parser->state->mark + parser->state->field_name,
+                    parser->state->field_name_len,
+                    buf + parser->state->mark + parser->state->field_value,
+                    parser->state->field_value_len
+                );
+            }
+
+            if (parser->error)
+                fgoto *http_parser_error;
+        }
+
+        parser->state->field_name = -1;
+        parser->state->field_name_len = -1;
+        parser->state->field_value = -1;
+        parser->state->field_value_len = -1;
+        parser->state->mark = -1;
     }
 
     action invalid_http_version {
@@ -332,24 +361,23 @@ static void handle_header_callback(HTTPParser *parser, const char *buf)
     obs_text = 0x80..0xFF ;
     obs_fold = CRLF ( SP | HTAB )+ ;
 
-    method = token >mark %request_method ;
-    request_target = ( any -- CRLF )+ >mark ;
-    http_version = ( "HTTP" "/" "1" "." digit ) <lerr(invalid_http_version) >mark %http_version ;
-    status_code = digit{3} >mark %status_code ;
-    reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >mark %reason_phrase ;
+    method = token >method %method_len ;
+    request_target = ( any -- CRLF )+ >uri %uri_len ;
+    http_major_version = "1" >lerr(invalid_http_version) ;
+    http_version = ( "HTTP" "/" http_major_version "." digit ) >http_version %http_version_len ;
+    status_code = digit{3} >status_code %status_code_len ;
+    reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >reason_phrase %reason_phrase_len ;
 
-    request_line = CRLF* method SP request_target SP %request_uri http_version CRLF ;
-    status_line = http_version SP status_code ( SP reason_phrase )? CRLF ;
-    start_line = ( request_line | status_line ) ;
+    request_line = ( CRLF* method SP request_target SP http_version CRLF ) >mark %request_line ;
+    status_line = ( http_version SP status_code ( SP reason_phrase )? CRLF ) >mark %status_line ;
 
-    field_name = token >mark %header_name_end ;
+    field_name = token >field_name %field_name_len ;
     field_vchar = ( VCHAR | obs_text ) ;
     field_content = field_vchar ( ( SP | HTAB )+ field_vchar )? ;
-    field_value = ( field_content | obs_fold )* >header_value_start
-                                                %header_value_end ;
-    header_field = field_name ":" OWS field_value OWS CRLF %write_header ;
+    field_value = ( field_content | obs_fold )* >field_value %field_value_len ;
+    header_field = ( field_name ":" OWS field_value OWS CRLF ) >mark %header_field ;
 
-    http_message = start_line header_field* CRLF ;
+    http_message = ( request_line | status_line ) header_field* CRLF ;
 
 main := http_message @done @eof(eof_received);
 
@@ -399,9 +427,20 @@ void HTTPParser_init(HTTPParser *parser)
     %% write init;
 
     parser->state->mark = -1;
-    parser->state->header_name_end = 0;
-    parser->state->header_value_start = 0;
-    parser->state->header_value_end = 0;
+    parser->state->method = -1;
+    parser->state->method_len = 0;
+    parser->state->uri = -1;
+    parser->state->uri_len = -1;
+    parser->state->http_version = -1;
+    parser->state->http_version_len = -1;
+    parser->state->status_code = -1;
+    parser->state->status_code_len = -1;
+    parser->state->reason_phrase = -1;
+    parser->state->reason_phrase_len = -1;
+    parser->state->field_name = -1;
+    parser->state->field_name_len = -1;
+    parser->state->field_value = -1;
+    parser->state->field_value_len = -1;
 
     parser->state->tmplen = 0;
 
@@ -421,6 +460,9 @@ size_t HTTPParser_execute(HTTPParser *parser,
                           size_t length)
 {
     char *rtmp;
+    char *field_value;
+    int field_value_len;
+
     const char *p;
     const char *pe;
     const char *eof = NULL;
@@ -486,7 +528,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
     } else if (parser->state->mark >= 0) {
         /* If the parser isn't finished and we have anything marked then we
            need to save the trailing part of the buffer. */
-        parser->state->tmplen = calculate_length(pe, buf, parser->state->mark);
+        parser->state->tmplen = pe - buf - parser->state->mark;
 
         rtmp = realloc(parser->state->tmp, parser->state->tmplen);
         if (rtmp == NULL)
@@ -499,7 +541,7 @@ size_t HTTPParser_execute(HTTPParser *parser,
 
         memcpy(
             parser->state->tmp,
-            create_pointer(buf, parser->state->mark),
+            buf + parser->state->mark,
             parser->state->tmplen
         );
     } else {
