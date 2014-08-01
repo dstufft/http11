@@ -349,11 +349,16 @@ static const unsigned short buf2status_code(const char *buf, const int len)
         fgoto *http_parser_error;
     }
 
-    CRLF = ( "\r\n" | "\n" ) ;
+    CR = "\r" ;
+    LF = "\n" ;
+    CRLF = CR? LF ;
     SP = " " ;
     VCHAR = graph ;
     HTAB = "\t" ;
+    VTAB = 0x0B ;
+    FEED = 0x0C ;
     OWS = ( SP | HTAB )* ;
+    WS = ( SP | HTAB | VTAB | FEED | CR ) ;
 
     tchar = ( "!" | "#" | "$" | "%" | "&" | "'" | "*" | "+" | "-" | "." | "^" |
               "_" | "`" | "|" | "~" | digit | alpha ) ;
@@ -362,14 +367,17 @@ static const unsigned short buf2status_code(const char *buf, const int len)
     obs_fold = CRLF ( SP | HTAB )+ ;
 
     method = token >method %method_len ;
-    request_target = ( any -- CRLF )+ >uri %uri_len ;
+    request_target = (
+            ( any -- WS -- CRLF )
+            ( (any -- CRLF)* ( any -- WS -- CRLF ) )?
+        ) >uri %uri_len ;
     http_major_version = "1" >lerr(invalid_http_version) ;
     http_version = ( "HTTP" "/" http_major_version "." digit ) >http_version %http_version_len ;
     status_code = digit{3} >status_code %status_code_len ;
-    reason_phrase = ( HTAB | SP | VCHAR | obs_text )* >reason_phrase %reason_phrase_len ;
+    reason_phrase = ( HTAB | SP | VCHAR | obs_text )+ >reason_phrase %reason_phrase_len ;
 
-    request_line = ( CRLF* method SP request_target SP http_version CRLF ) >mark %request_line ;
-    status_line = ( http_version SP status_code ( SP reason_phrase )? CRLF ) >mark %status_line ;
+    request_line = ( CRLF* method WS+ request_target WS+ :> http_version CRLF ) >mark %request_line ;
+    status_line = ( http_version WS+ status_code ( WS+ <: reason_phrase? )? :> CRLF ) >mark %status_line ;
 
     field_name = token >field_name %field_name_len ;
     field_vchar = ( VCHAR | obs_text ) ;
