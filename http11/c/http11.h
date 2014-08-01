@@ -40,24 +40,24 @@ typedef int (*header_cb)(const char *name,
                          size_t valuelen);
 
 typedef struct HTTPParser {
-  /* Public State */
-  bool finished;
-  int error;
+    /* Public State */
+    bool finished;
+    int error;
 
-  http_msg_type type;
+    http_msg_type type;
 
-  /* Callback Methods */
-  element_cb request_method;
-  element_cb request_uri;
-  element_cb http_version;
-  element_cb reason_phrase;
+    /* Callback Methods */
+    element_cb request_method;
+    element_cb request_uri;
+    element_cb http_version;
+    element_cb reason_phrase;
 
-  status_code_cb status_code;
+    status_code_cb status_code;
 
-  header_cb http_header;
+    header_cb http_header;
 
-  /* Internal state */
-  HTTPParserState state;
+    /* Internal state */
+    HTTPParserState state;
 
 } HTTPParser;
 

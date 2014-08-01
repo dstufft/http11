@@ -25,26 +25,26 @@
 
 
 struct _HTTPParserState {
-  int cs;
-  int mark;
+    int cs;
+    int mark;
 
-  int method;
-  int method_len;
-  int uri;
-  int uri_len;
-  int http_version;
-  int http_version_len;
-  int status_code;
-  int status_code_len;
-  int reason_phrase;
-  int reason_phrase_len;
-  int field_name;
-  int field_name_len;
-  int field_value;
-  int field_value_len;
+    int method;
+    int method_len;
+    int uri;
+    int uri_len;
+    int http_version;
+    int http_version_len;
+    int status_code;
+    int status_code_len;
+    int reason_phrase;
+    int reason_phrase_len;
+    int field_name;
+    int field_name_len;
+    int field_value;
+    int field_value_len;
 
-  char *tmp;
-  size_t tmplen;
+    char *tmp;
+    size_t tmplen;
 };
 
 
