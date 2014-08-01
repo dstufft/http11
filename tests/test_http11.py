@@ -161,16 +161,9 @@ def test_doesnt_read_past_end(parser, data):
     assert not parser.error
 
 
-@pytest.mark.parametrize(
-    "msg",
-    [
-        b"GET / HTTP/2.0\r\n\r\n",
-        b"GET / HTTP/1.W\r\n\r\n",
-        b"GET / HTTP/1\r\n\r\n",
-        b"GET / HTTP/1_1\r\n\r\n",
-    ]
-)
-def test_http_version_error(msg, parser, data):
+def test_http_version_error(parser, data):
+    msg = b"GET / HTTP/2.0\r\n\r\n"
+
     http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert parser.finished
