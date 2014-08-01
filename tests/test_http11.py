@@ -47,6 +47,11 @@ def test_parsing(parser, data, message, expected):
     assert parser.finished
     assert not parser.error
 
+    if "request_method" in expected:
+        assert parser.type == http11.lib.REQUEST
+    else:
+        assert parser.type == http11.lib.RESPONSE
+
 
 @pytest.mark.parametrize(("message", "expected"), _load_cases())
 def test_number_callbacks(message, expected):

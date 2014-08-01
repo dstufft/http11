@@ -28,6 +28,8 @@ typedef enum {false, true} bool;
 
 typedef struct _HTTPParserState *HTTPParserState;
 
+typedef enum {REQUEST, RESPONSE} http_msg_type;
+
 typedef int (*element_cb)(const char *buf, size_t length);
 
 typedef int (*status_code_cb)(const unsigned short status_code);
@@ -41,6 +43,8 @@ typedef struct HTTPParser {
   /* Public State */
   bool finished;
   int error;
+
+  http_msg_type type;
 
   /* Callback Methods */
   element_cb request_method;

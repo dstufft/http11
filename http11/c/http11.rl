@@ -216,6 +216,10 @@ static const unsigned short buf2status_code(const char *buf, const int len)
     }
 
     action request_line {
+        /* Mark this as a request */
+        parser->type = REQUEST;
+
+        /* Actually call our callbacks. */
         if (parser->request_method != NULL) {
             parser->error = parser->request_method(
                 buf + parser->state->mark + parser->state->method,
@@ -250,6 +254,10 @@ static const unsigned short buf2status_code(const char *buf, const int len)
     }
 
     action status_line {
+        /* Mark this as a response */
+        parser->type = RESPONSE;
+
+        /* Actually call our callbacks. */
         if (parser->http_version != NULL) {
             parser->error = parser->http_version(
                 buf + parser->state->mark + parser->state->http_version,
@@ -459,6 +467,7 @@ void HTTPParser_init(HTTPParser *parser)
 
     parser->finished = false;
     parser->error = 0;
+    parser->type = -1;
 }
 
 
