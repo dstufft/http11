@@ -21,8 +21,8 @@ CFFI_DEPENDENCY = "cffi>=0.8"
 
 
 def get_ext_modules():
-    import http11
-    return [http11.ffi.verifier.get_extension()]
+    import http11.c
+    return [http11.c.ffi.verifier.get_extension()]
 
 
 class CFFIBuild(build):

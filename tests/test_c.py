@@ -16,7 +16,7 @@ import os.path
 
 import pytest
 
-import http11
+import http11.c
 
 
 def _load_cases():
@@ -40,7 +40,7 @@ def test_parsing(parser, data, message, expected):
         message = [message]
 
     for chunk in message:
-        parsed = http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        parsed = http11.c.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
         assert parsed == len(chunk)
 
     assert data == expected
@@ -48,9 +48,9 @@ def test_parsing(parser, data, message, expected):
     assert not parser.error
 
     if "request_method" in expected:
-        assert parser.type == http11.lib.REQUEST
+        assert parser.type == http11.c.lib.REQUEST
     else:
-        assert parser.type == http11.lib.RESPONSE
+        assert parser.type == http11.c.lib.RESPONSE
 
 
 @pytest.mark.parametrize(("message", "expected"), _load_cases())
@@ -67,52 +67,52 @@ def test_number_callbacks(message, expected):
             self.calls += 1
             return 0
 
-    parser = http11.lib.HTTPParser_create()
+    parser = http11.c.lib.HTTPParser_create()
 
     request_method = CallRecorder()
-    parser.request_method = c1 = http11.ffi.callback(
+    parser.request_method = c1 = http11.c.ffi.callback(
         "int(const char *value, size_t length)",
         request_method,
     )
 
     request_uri = CallRecorder()
-    parser.request_uri = c2 = http11.ffi.callback(
+    parser.request_uri = c2 = http11.c.ffi.callback(
         "int(const char *value, size_t length)",
         request_uri,
     )
 
     http_version = CallRecorder()
-    parser.http_version = c3 = http11.ffi.callback(
+    parser.http_version = c3 = http11.c.ffi.callback(
         "int(const char *value, size_t length)",
         http_version,
     )
 
     reason_phrase = CallRecorder()
-    parser.reason_phrase = c4 = http11.ffi.callback(
+    parser.reason_phrase = c4 = http11.c.ffi.callback(
         "int(const char *value, size_t length)",
         reason_phrase,
     )
 
     status_code = CallRecorder()
-    parser.status_code = c5 = http11.ffi.callback(
+    parser.status_code = c5 = http11.c.ffi.callback(
         "int(const unsigned short)",
         status_code,
     )
 
     http_header = CallRecorder()
-    parser.http_header = c6 = http11.ffi.callback(
+    parser.http_header = c6 = http11.c.ffi.callback(
         "int(const char *name, size_t namelen, const char *value, "
         "size_t valuelen)",
         http_header,
     )
 
-    http11.lib.HTTPParser_init(parser)
+    http11.c.lib.HTTPParser_init(parser)
 
     for chunk in message:
-        parsed = http11.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
+        parsed = http11.c.lib.HTTPParser_execute(parser, chunk, 0, len(chunk))
         assert parsed == len(chunk)
 
-    http11.lib.HTTPParser_destroy(parser)
+    http11.c.lib.HTTPParser_destroy(parser)
 
     assert request_method.calls == (1 if "request_method" in expected else 0)
     assert request_uri.calls == (1 if "request_uri" in expected else 0)
@@ -133,9 +133,9 @@ def test_number_callbacks(message, expected):
 def test_offset_length(parser, data):
     msg = b"GET / HTTP/1.1\r\nFoo: Bar\r\n\r\n"
 
-    assert http11.lib.HTTPParser_execute(parser, msg, 0, 16) == 16
-    assert http11.lib.HTTPParser_execute(parser, msg, 16, 20) == 4
-    assert http11.lib.HTTPParser_execute(parser, msg, 20, 28) == 8
+    assert http11.c.lib.HTTPParser_execute(parser, msg, 0, 16) == 16
+    assert http11.c.lib.HTTPParser_execute(parser, msg, 16, 20) == 4
+    assert http11.c.lib.HTTPParser_execute(parser, msg, 20, 28) == 8
 
     assert data == {
         "request_method": b"GET",
@@ -152,7 +152,7 @@ def test_offset_length(parser, data):
 def test_doesnt_read_past_end(parser, data):
     msg = b"GET / HTTP/1.1\r\nFoo: Bar\r\n\r\nThis data should not be read."
 
-    assert http11.lib.HTTPParser_execute(parser, msg, 0, len(msg)) == 28
+    assert http11.c.lib.HTTPParser_execute(parser, msg, 0, len(msg)) == 28
 
     assert data == {
         "request_method": b"GET",
@@ -169,20 +169,20 @@ def test_doesnt_read_past_end(parser, data):
 def test_http_version_error(parser, data):
     msg = b"GET / HTTP/2.0\r\n\r\n"
 
-    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+    http11.c.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert parser.finished
-    assert parser.error == http11.lib.EBADVERSION
+    assert parser.error == http11.c.lib.EBADVERSION
 
 
 def test_eof_handling(parser):
     msg = b"HTTP/1.2 200 OK\r\nFoo: Bar\r\n"
 
-    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
-    http11.lib.HTTPParser_execute(parser, http11.ffi.NULL, 0, 0)
+    http11.c.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+    http11.c.lib.HTTPParser_execute(parser, http11.c.ffi.NULL, 0, 0)
 
     assert parser.finished
-    assert parser.error == http11.lib.EEOF
+    assert parser.error == http11.c.lib.EEOF
 
 
 def test_leading_crlf(parser, data):
@@ -193,7 +193,7 @@ def test_leading_crlf(parser, data):
     """
     msg = b"\r\n\r\n\r\n\r\nGET / HTTP/1.1\r\n\r\n"
 
-    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+    http11.c.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert data == {
         "request_method": b"GET",
@@ -205,7 +205,7 @@ def test_leading_crlf(parser, data):
 
     msg = b"\r\n\r\n\r\n\r\nHTTP/1.1 200 OK\r\n\r\n"
 
-    http11.lib.HTTPParser_execute(parser, msg, 0, len(msg))
+    http11.c.lib.HTTPParser_execute(parser, msg, 0, len(msg))
 
     assert parser.finished
-    assert parser.error == http11.lib.EINVALIDMSG
+    assert parser.error == http11.c.lib.EINVALIDMSG
