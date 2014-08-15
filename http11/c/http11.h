@@ -18,6 +18,7 @@
 #define _http11_h
 
 
+#define EERROR      -1 /* General nonspecific error. */
 #define EEOF        -2 /* An EOF was received prior to the message being
                           finished. */
 #define EINVALIDMSG -3 /* The message was invalid an unable to be parsed */

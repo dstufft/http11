@@ -10,4 +10,4 @@ recursive-include tests *.py
 exclude tox.ini
 exclude .travis.yml
 
-prune http11/__pycache__
+prune http11/c/__pycache__

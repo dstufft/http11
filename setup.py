@@ -92,6 +92,7 @@ setup(
 
     install_requires=[
         CFFI_DEPENDENCY,
+        "enum34",
     ],
 
     setup_requires=[
