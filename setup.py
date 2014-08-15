@@ -11,9 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os.path
+import sys
+
 from distutils.command.build import build
 
-from setuptools import find_packages, setup
+from setuptools import setup
 from setuptools.command.install import install
 
 
@@ -21,7 +24,13 @@ CFFI_DEPENDENCY = "cffi>=0.8"
 
 
 def get_ext_modules():
+    original_sys_path = sys.path[:]
+    sys.path.insert(
+        0,
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"),
+    )
     import http11.c
+    sys.path = original_sys_path
     return [http11.c.ffi.verifier.get_extension()]
 
 
@@ -52,12 +61,22 @@ class CFFIInstall(install):
         install.finalize_options(self)
 
 
+metafile = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "src",
+    "http11",
+    "__about__.py",
+)
 meta = {}
-with open("http11/__about__.py") as fp:
+with open(metafile) as fp:
     exec(fp.read(), meta)
 
 
-with open("README.rst") as fp:
+readmefile = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "README.rst",
+)
+with open(readmefile) as fp:
     long_description = fp.read()
 
 
@@ -88,7 +107,11 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
 
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=[
+        "http11",
+        "http11.c",
+    ],
 
     install_requires=[
         CFFI_DEPENDENCY,

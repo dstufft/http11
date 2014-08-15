@@ -4,10 +4,10 @@ include README.rst
 include CONTRIBUTING.rst
 include Makefile
 
-recursive-include http11 *.c *.h *.rl
+recursive-include src *.c *.h *.rl
 recursive-include tests *.py
 
 exclude tox.ini
 exclude .travis.yml
 
-prune http11/c/__pycache__
+prune src/http11/c/__pycache__
