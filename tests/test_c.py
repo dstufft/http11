@@ -14,6 +14,7 @@ import ast
 import glob
 import os.path
 
+import pretend
 import pytest
 
 import http11.c
@@ -32,6 +33,22 @@ def _load_cases():
         with open(casefile) as fp:
             for case in ast.literal_eval(fp.read()):
                 yield case["message"], case["expected"]
+
+
+def test_runtime_compile_fails():
+    ffi = pretend.stub(
+        verifier=pretend.stub(
+            compile_module=lambda *a, **k: None,
+            _compile_module=lambda *a, **k: None,
+        ),
+    )
+    lib = http11.c.Library(ffi)
+
+    with pytest.raises(RuntimeError):
+        lib.ffi.verifier.compile_module()
+
+    with pytest.raises(RuntimeError):
+        lib.ffi.verifier._compile_module()
 
 
 @pytest.mark.parametrize(("message", "expected"), _load_cases())
