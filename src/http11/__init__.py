@@ -9,3 +9,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from http11.__about__ import (
+    __title__, __version__, __summary__, __license__, __url__, __author__,
+    __email__,
+)
+
+__all__ = [
+    "__title__", "__version__", "__summary__", "__license__", "__url__",
+    "__author__", "__email__",
+]
