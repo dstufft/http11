@@ -14,7 +14,9 @@ env:
 
 install: pip install tox
 
-script: tox
+script:
+  - tox
+  - coverage report --fail-under 100 > /dev/null
 
 branches:
   only:
