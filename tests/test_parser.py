@@ -13,7 +13,7 @@
 import pretend
 import pytest
 
-from http11.parser import Callback, Error, HTTPParser
+from http11.parser import Callback, Error, HTTPParser, MessageType
 
 
 def test_basic():
@@ -144,3 +144,47 @@ def test_callback_decorator():
 
     assert parser.finished
     assert not parser.errored
+
+
+@pytest.mark.parametrize(
+    ("message", "mtype"),
+    [
+        (b"GET / HTTP/1.1\r\n\r\n", MessageType.Request),
+        (b"HTTP/1.1 200 OK\r\n\r\n", MessageType.Response),
+    ],
+)
+def test_callback_message_type(message, mtype):
+    parser = HTTPParser()
+    assert parser.type is None
+    parser.parse(message)
+    assert parser.type == mtype
+
+
+def test_message_reset():
+    parser = HTTPParser()
+
+    assert not parser.finished
+    assert not parser.errored
+    assert parser.error is None
+    assert parser.type is None
+
+    parser.parse(b"HTTP/1.1 200 OK\r\n\r\n")
+
+    assert parser.finished
+    assert not parser.errored
+    assert parser.error is None
+    assert parser.type is MessageType.Response
+
+    parser.reset()
+
+    assert not parser.finished
+    assert not parser.errored
+    assert parser.error is None
+    assert parser.type is None
+
+    parser.parse(b"GET / HTTP/1.1\r\n\r\n")
+
+    assert parser.finished
+    assert not parser.errored
+    assert parser.error is None
+    assert parser.type is MessageType.Request

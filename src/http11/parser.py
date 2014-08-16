@@ -72,6 +72,12 @@ class Error(enum.IntEnum):
     BadVersion = c.lib.EBADVERSION
 
 
+class MessageType(enum.IntEnum):
+
+    Request = c.lib.REQUEST
+    Response = c.lib.RESPONSE
+
+
 class HTTPParser(object):
 
     def __init__(self):
@@ -96,6 +102,13 @@ class HTTPParser(object):
             return
 
         return Error(self.parser.error)
+
+    @property
+    def type(self):
+        try:
+            return MessageType(self.parser.type)
+        except ValueError:
+            return
 
     def reset(self):
         c.lib.HTTPParser_init(self.parser)
