@@ -12,12 +12,12 @@
 
 import pytest
 
-import http11
+import http11.c
 
 
 def _dict_store_element_callback(data, name):
     def inner(buf, length):
-        data[name] = http11.ffi.buffer(buf, length)[:]
+        data[name] = http11.c.ffi.buffer(buf, length)[:]
         return 0
     return inner
 
@@ -31,8 +31,8 @@ def _dict_store_status_code_callback(data, name):
 
 def _dict_store_header_callback(data):
     def inner(name, namelen, value, valuelen):
-        name = http11.ffi.buffer(name, namelen)[:]
-        value = http11.ffi.buffer(value, valuelen)[:]
+        name = http11.c.ffi.buffer(name, namelen)[:]
+        value = http11.c.ffi.buffer(value, valuelen)[:]
 
         data.setdefault("headers", {}).setdefault(name, []).append(value)
         return 0
@@ -54,14 +54,14 @@ def _callbacks():
 
 @pytest.fixture
 def parser(request, data, _callbacks):
-    p = http11.lib.HTTPParser_create()
+    p = http11.c.lib.HTTPParser_create()
 
-    request.addfinalizer(lambda: http11.lib.HTTPParser_destroy(p))
+    request.addfinalizer(lambda: http11.c.lib.HTTPParser_destroy(p))
 
     for element in ["request_method", "request_uri", "http_version",
                     "reason_phrase"]:
         _callbacks.append(
-            http11.ffi.callback(
+            http11.c.ffi.callback(
                 "int(const char *buf, size_t length)",
                 _dict_store_element_callback(data, element),
             )
@@ -69,7 +69,7 @@ def parser(request, data, _callbacks):
         setattr(p, element, _callbacks[-1])
 
     _callbacks.append(
-        http11.ffi.callback(
+        http11.c.ffi.callback(
             "int(const unsigned short status_code)",
             _dict_store_status_code_callback(data, "status_code"),
         )
@@ -77,7 +77,7 @@ def parser(request, data, _callbacks):
     p.status_code = _callbacks[-1]
 
     _callbacks.append(
-        http11.ffi.callback(
+        http11.c.ffi.callback(
             "int(const char *name, size_t namelen, const char *value, "
             "size_t valuelen)",
             _dict_store_header_callback(data),
@@ -85,6 +85,6 @@ def parser(request, data, _callbacks):
     )
     p.http_header = _callbacks[-1]
 
-    http11.lib.HTTPParser_init(p)
+    http11.c.lib.HTTPParser_init(p)
 
     return p

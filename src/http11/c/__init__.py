@@ -19,11 +19,12 @@ from cffi.verifier import Verifier
 
 
 # Locate our source directory for our C files.
-SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "c"))
+SRC_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 # Write out our cdef to bind data to our FFI instance
 CDEF = """
+    #define EERROR ...
     #define EEOF ...
     #define EINVALIDMSG ...
     #define EBADVERSION ...
