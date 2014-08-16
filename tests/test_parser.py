@@ -11,6 +11,7 @@
 # limitations under the License.
 
 import pretend
+
 import pytest
 
 from http11.parser import Callback, Error, HTTPParser, MessageType

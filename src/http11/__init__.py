@@ -11,11 +11,11 @@
 # limitations under the License.
 
 from http11.__about__ import (
-    __title__, __version__, __summary__, __license__, __url__, __author__,
-    __email__,
+    __author__, __email__, __license__, __summary__, __title__, __url__,
+    __version__,
 )
 
 __all__ = [
-    "__title__", "__version__", "__summary__", "__license__", "__url__",
-    "__author__", "__email__",
+    "__author__", "__email__", "__license__", "__summary__", "__title__",
+    "__url__", "__version__",
 ]

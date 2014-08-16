@@ -15,6 +15,7 @@ import glob
 import os.path
 
 import pretend
+
 import pytest
 
 import http11.c
