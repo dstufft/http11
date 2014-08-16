@@ -61,7 +61,15 @@ class Callback(enum.Enum):
     http_version = "http_version"
     reason_phrase = "reason_phrase"
     status_code = "status_code"
-    header = "header"
+    http_header = "http_header"
+
+
+class Error(enum.IntEnum):
+
+    General = c.lib.EERROR
+    EOF = c.lib.EEOF
+    InvalidMessage = c.lib.EINVALIDMSG
+    BadVersion = c.lib.EBADVERSION
 
 
 class HTTPParser(object):
@@ -74,6 +82,21 @@ class HTTPParser(object):
         )
         self.reset()
 
+    @property
+    def finished(self):
+        return bool(self.parser.finished)
+
+    @property
+    def errored(self):
+        return bool(self.parser.error)
+
+    @property
+    def error(self):
+        if not self.errored:
+            return
+
+        return Error(self.parser.error)
+
     def reset(self):
         c.lib.HTTPParser_init(self.parser)
 
@@ -82,31 +105,27 @@ class HTTPParser(object):
             if cname in set([
                     Callback.request_method,
                     Callback.request_uri,
-                    Callback.http_version.
+                    Callback.http_version,
                     Callback.reason_phrase]):
                 self.callbacks[cname] = c.ffi.callback(
-                    c.ffi.callback(
-                        "int(const char *buf, size_t length)",
-                        _element_callback(func),
-                    )
+                    "int(const char *buf, size_t length)",
+                    _element_callback(func),
                 )
             elif cname is Callback.status_code:
                 self.callbacks[cname] = c.ffi.callback(
-                    c.ffi.callback(
-                        "int(const unsigned short status_code)",
-                        _status_code_callback(func),
-                    )
+                    "int(const unsigned short status_code)",
+                    _status_code_callback(func),
                 )
-            elif cname is Callback.header:
+            elif cname is Callback.http_header:
                 self.callbacks[cname] = c.ffi.callback(
-                    c.ffi.callback(
-                        "int(const char *name, size_t namelen, "
-                        "const char *value, size_t valuelen)",
-                        _header_callback(func),
-                    )
+                    "int(const char *name, size_t namelen, "
+                    "const char *value, size_t valuelen)",
+                    _header_callback(func),
                 )
             else:
-                ValueError("Unknown callback name.")
+                raise ValueError("Unknown callback name.")
+
+            setattr(self.parser, cname.value, self.callbacks[cname])
 
             return func
 
